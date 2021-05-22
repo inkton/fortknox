@@ -51,6 +51,16 @@ variable "fk_prefix" {
   description              = "A friendly prefix (like 'pihole') affixed to many resources, like the bucket name."
 }
 
+variable "user_name" {
+  type                     = string
+  description              = "The username"
+}
+
+variable "app_name" {
+  type                     = string
+  description              = "The app name"
+}
+
 variable "admin_password" {
   type                     = string
   description              = "Password for WebUI access"
@@ -104,7 +114,7 @@ variable "docker_onlyoffice" {
 variable "project_directory" {
   type                     = string
   description              = "Location to install/run project"
-  default                  = "/opt"
+  default                  = "/opt/inkton"
 }
 
 variable "web_port" {
@@ -119,14 +129,22 @@ variable "oo_port" {
   default                  = "8443"
 }
 
-variable "vault_id" {
+variable "kms_vault_id" {
   type                     = string
   description              = "The id of the app vault"
-  default                  = "ocid1.vault.oc1.ap-sydney-1.cjqjswloaaffe.abzxsljr3k4n225h7pfhphbkqr44r7ghbjhbesqxm3kw242vqpfi3zwhbqfq"
 }
 
-variable "disk_vault_id" {
+variable "kms_key_id" {
+  type                     = string
+  description              = "The key for the app vault"
+}
+
+variable "kms_disk_vault_id" {
   type                     = string
   description              = "The id of the app vault"
-  default                  = "ocid1.vault.oc1.ap-sydney-1.cjqjsqxoaaffe.abzxsljrdlka36r3wcbhjwu3moqizuohv24mggyfsrtgws7huam4j5rc6mvq"
+}
+
+variable "kms_disk_key_id" {
+  type                     = string
+  description              = "The key for the app vault"
 }

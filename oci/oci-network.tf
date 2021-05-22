@@ -8,7 +8,7 @@ resource "oci_core_vcn" "fk_vcn" {
 resource "oci_core_internet_gateway" "fk_internet_gateway" {
   compartment_id               = oci_identity_compartment.fk_compartment.id
   vcn_id                       = oci_core_vcn.fk_vcn.id
-  display_name                 = "${var.fk_prefix}_internet_gateway"
+  display_name                 = "${var.fk_prefix}-internet"
   enabled                      = "true"
 }
 

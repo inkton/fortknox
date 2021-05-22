@@ -7,6 +7,40 @@
   gather_facts: true
   become: true
   become_user: root
+
+  pre_tasks:
+    - name: fetch decrypt admin pass
+      oci_key_management_decrypted_data:
+        auth_type: "instance_principal"
+        ciphertext: "{{ admin_password_cipher }}"
+        service_endpoint: "{{ oci_kms_endpoint }}"
+        key_id: "{{ oci_kms_keyid }}"
+      register: admin_password_decrypt
+
+    - name: fetch decrypt db pass
+      oci_key_management_decrypted_data:
+        auth_type: "instance_principal"
+        ciphertext: "{{ db_password_cipher }}"
+        service_endpoint: "{{ oci_kms_endpoint }}"
+        key_id: "{{ oci_kms_keyid }}"
+      register: db_password_decrypt
+
+#    - name: fetch decrypt oo pass
+#      oci_key_management_decrypted_data:
+#        auth_type: "instance_principal"
+#        ciphertext: "{{ oo_password_cipher }}"
+#        service_endpoint: "{{ oci_kms_endpoint }}"
+#        key_id: "{{ oci_kms_keyid }}"
+#      register: oo_password_decrypt
+
+#    - name: fetch decrypt bucket user key
+#      oci_key_management_decrypted_data:
+#        auth_type: "instance_principal"
+#        ciphertext: "{{ bucket_user_key_cipher }}"
+#        service_endpoint: "{{ oci_kms_endpoint }}"
+#        key_id: "{{ oci_kms_keyid }}"
+#      register: bucket_user_key_decrypt
+
   tasks:
 
     - name: check swap file exists
@@ -50,13 +84,13 @@
       when:
         - ansible_swaptotal_mb < 1
 
-    - name: required packages
-      apt:
-        pkg:
-          - python3-pip
-          - ssl-cert
-        state: latest
-        update_cache: yes
+#    - name: required packages
+#      apt:
+#        pkg:
+#          - python3-pip
+#          - ssl-cert
+#        state: latest
+#        update_cache: yes
 
     - name: IP Forwarding enable/persist
       sysctl:
@@ -67,12 +101,12 @@
         sysctl_set: yes
         sysctl_file: /etc/sysctl.conf
 
-    - name: db user
-      user:
-        name: fortknox
-        shell: /bin/bash
-        create_home: False
-      register: db_user
+#    - name: db user
+#      user:
+#        name: fortknox
+#        shell: /bin/bash
+#        create_home: False
+#      register: db_user
 
     - name: get oci metadata
       uri:
@@ -105,33 +139,33 @@
         owner: www-data
         mode: '0750'
       with_items:
-        - "{{ project_directory }}/fortknox_application"
-        - "{{ project_directory }}/fortknox_application/var"
-        - "{{ project_directory }}/fortknox_application/var/www"
-        - "{{ project_directory }}/fortknox_application/var/www/html"
-        - "{{ project_directory }}/fortknox_application/var/www/html/custom_apps"
-        - "{{ project_directory }}/fortknox_application/var/www/html/config"
-        - "{{ project_directory }}/fortknox_application/var/www/html/data"
+        - "{{ project_directory }}/fortknox_app"
+        - "{{ project_directory }}/fortknox_app/var"
+        - "{{ project_directory }}/fortknox_app/var/www"
+        - "{{ project_directory }}/fortknox_app/var/www/html"
+        - "{{ project_directory }}/fortknox_app/var/www/html/custom_apps"
+        - "{{ project_directory }}/fortknox_app/var/www/html/config"
+        - "{{ project_directory }}/fortknox_app/var/www/html/data"
 
-    - name: various container directories - webproxy
-      file:
-        path: "{{ item }}"
-        state: directory
-        owner: root
-        group: root
-        mode: '0750'
-      with_items:
-        - "{{ project_directory }}/fortknox_webproxy"
+#    - name: various container directories - webproxy
+#      file:
+#        path: "{{ item }}"
+#        state: directory
+#        owner: root
+#        group: root
+#        mode: '0750'
+#      with_items:
+#        - "{{ project_directory }}/fortknox_webproxy"
 
-    - name: various container directories - db
-      file:
-        path: "{{ item }}"
-        state: directory
-        owner: "{{ db_user.name }}"
-        group: "{{ db_user.group }}"
-        mode: '0750'
-      with_items:
-        - "{{ project_directory }}/fortknox_database"
+#    - name: various container directories - db
+#      file:
+#        path: "{{ item }}"
+#        state: directory
+#        owner: "{{ db_user.name }}"
+#        group: "{{ db_user.group }}"
+#        mode: '0750'
+#      with_items:
+#        - "{{ project_directory }}/fortknox_db"
 
 #    - name: various container directories - onlyoffice
 #      file:
@@ -144,9 +178,9 @@
 #        - "{{ project_directory }}/fortknox_onlyoffice"
 #        - "{{ project_directory }}/fortknox_onlyoffice/certs"
 
-    - name: web_port if not defined
-      set_fact:
-        web_port: "{% if web_port is not defined %}443{% else %}{{ web_port }}{% endif %}"
+#    - name: web_port if not defined
+#      set_fact:
+#        web_port: "{% if web_port is not defined %}443{% else %}{{ web_port }}{% endif %}"
 
 #    - name: secure web proxy
 #      template:
@@ -159,85 +193,53 @@
 #        - httpd-ssl.conf
 #        - httpd.conf
 
-    - name: fetch decrypt admin pass
-      oci_key_management_decrypted_data:
-        auth_type: "instance_principal"
-        ciphertext: "{{ admin_password_cipher }}"
-        service_endpoint: "{{ oci_kms_endpoint }}"
-        key_id: "{{ oci_kms_keyid }}"
-      register: admin_password_decrypt
-
-    - name: fetch decrypt db pass
-      oci_key_management_decrypted_data:
-        auth_type: "instance_principal"
-        ciphertext: "{{ db_password_cipher }}"
-        service_endpoint: "{{ oci_kms_endpoint }}"
-        key_id: "{{ oci_kms_keyid }}"
-      register: db_password_decrypt
-
-#    - name: fetch decrypt oo pass
-#      oci_key_management_decrypted_data:
-#        auth_type: "instance_principal"
-#        ciphertext: "{{ oo_password_cipher }}"
-#        service_endpoint: "{{ oci_kms_endpoint }}"
-#        key_id: "{{ oci_kms_keyid }}"
-#      register: oo_password_decrypt
-
-    - name: fetch decrypt bucket user key
-      oci_key_management_decrypted_data:
-        auth_type: "instance_principal"
-        ciphertext: "{{ bucket_user_key_cipher }}"
-        service_endpoint: "{{ oci_kms_endpoint }}"
-        key_id: "{{ oci_kms_keyid }}"
-      register: bucket_user_key_decrypt
-
 #    - name: Determine fortknox state
 #      stat:
 #        path: "{{ project_directory }}/fortknox/var/www/html/data/ncadmin"
 #      register: fortknox_state
 
-#    - name: get backup from storage if exists
-#      oci_object_storage_object:
-#        auth_type: "instance_principal"
-#        namespace_name: "{{ oci_storage_namespace }}"
-#        bucket_name: "{{ oci_storage_bucketname }}"
-#        object_name: "fortknox/fortknox_application_backup.tar.gz"
-#        dest: "{{ project_directory }}/fortknox_application_backup.tar.gz"
-#      when: fortknox_state.stat.exists|bool == False
-#      ignore_errors: True
+    - name: get backup from storage if exists
+      oci_object_storage_object:
+        auth_type: "instance_principal"
+        namespace_name: "{{ oci_storage_namespace }}"
+        bucket_name: "{{ oci_storage_bucketname }}"
+        object_name: "fortknox/fortknox_app_backup.tar.gz"
+        dest: "{{ project_directory }}/fortknox_app_backup.tar.gz"
+      when: fortknox_state.stat.exists|bool == False
+      ignore_errors: True
 
-#    - name: unarchive backup if dir not exists
-#      unarchive:
-#        src: "{{ project_directory }}/fortknox_application_backup.tar.gz"
-#        dest: "{{ project_directory }}/"
-#        remote_src: yes
-#      when: fortknox_state.stat.exists|bool == False
-#      ignore_errors: True
+    - name: unarchive backup if dir not exists
+      unarchive:
+        src: "{{ project_directory }}/fortknox_app_backup.tar.gz"
+        dest: "{{ project_directory }}/"
+        remote_src: yes
+      when: fortknox_state.stat.exists|bool == False
+      ignore_errors: True
 
-#    - name: Determine fortknox db state
-#      stat:
-#        path: "{{ project_directory }}/fortknox_database/databases/fortknox"
-#      register: fortknox_db_state
+    - name: Determine fortknox db state
+      stat:
+        path: "{{ project_directory }}/fortknox_db"
+      register: fortknox_db_state
 
-#    - name: get db backup from storage if exists
-#      oci_object_storage_object:
-#        auth_type: "instance_principal"
-#        namespace_name: "{{ oci_storage_namespace }}"
-#        bucket_name: "{{ oci_storage_bucketname }}"
-#        object_name: "fortknox/fortknox_database_backup.tar.gz"
-#        dest: "{{ project_directory }}/fortknox_database_backup.tar.gz"
-#      when: fortknox_state.stat.exists|bool == False
-#      ignore_errors: True
+    - name: get db backup from storage if exists
+      oci_object_storage_object:
+        auth_type: "instance_principal"
+        namespace_name: "{{ oci_storage_namespace }}"
+        bucket_name: "{{ oci_storage_bucketname }}"
+        object_name: "fortknox/fortknox_db_backup.tar.gz"
+        dest: "{{ project_directory }}/fortknox_db_backup.tar.gz"
+      when: fortknox_state.stat.exists|bool == False
+      ignore_errors: True
 
-#    - name: unarchive db backup if dir not exists
-#      unarchive:
-#        src: "{{ project_directory }}/fortknox_database_backup.tar.gz"
-#        dest: "{{ project_directory }}/"
-#        remote_src: yes
-#        owner: fortknoxdb
-#        group: fortknoxdb
-#      when: fortknox_db_state.stat.exists|bool == False
-#      ignore_errors: True
+    - name: unarchive db backup if dir not exists
+      unarchive:
+        src: "{{ project_directory }}/fortknox_db_backup.tar.gz"
+        dest: "{{ project_directory }}/"
+        remote_src: yes
+        owner: fortknoxdb
+        group: fortknoxdb
+      when: fortknox_db_state.stat.exists|bool == False
+      ignore_errors: True
 
  #   - name: docker network
  #     docker_network:
@@ -263,7 +265,7 @@
 #          PUID: "{{ db_user.uid }}"
 #          PGID: "{{ db_user.group }}"
 #        volumes:
-#          - "{{ project_directory }}/fortknox_database:/config:rw"
+#          - "{{ project_directory }}/fortknox_db:/config:rw"
 #        pull: yes
 #        purge_networks: yes
 #        restart_policy: "always"
@@ -290,11 +292,11 @@
 #          MYSQL_USER: fortknox
 #          MYSQL_HOST: "{{ docker_db }}"
 #        volumes:
-#          - "{{ project_directory }}/fortknox_application/var/www/html:/var/www/html:rw"
-#          - "{{ project_directory }}/fortknox_application/var/www/html/custom_apps:/var/www/html/custom_apps:rw"
-#          - "{{ project_directory }}/fortknox_application/var/www/html/config:/var/www/html/config:rw"
-#          - "{{ project_directory }}/fortknox_application/var/www/html/data:/var/www/html/data:rw"
-#          - "{{ project_directory }}/fortknox_application/var/www/html/themes:/var/www/html/themes:rw"
+#          - "{{ project_directory }}/fortknox_app/var/www/html:/var/www/html:rw"
+#          - "{{ project_directory }}/fortknox_app/var/www/html/custom_apps:/var/www/html/custom_apps:rw"
+#          - "{{ project_directory }}/fortknox_app/var/www/html/config:/var/www/html/config:rw"
+#          - "{{ project_directory }}/fortknox_app/var/www/html/data:/var/www/html/data:rw"
+#          - "{{ project_directory }}/fortknox_app/var/www/html/themes:/var/www/html/themes:rw"
 #        pull: yes
 #        purge_networks: yes
 #        restart_policy: "always"
@@ -355,33 +357,33 @@
 #        tty: yes
 #      no_log: True
 
-    - name: iptables accept HTTPS
-      iptables:
-        chain: INPUT
-        protocol: tcp
-        destination_port: '{{ web_port }}'
-        ctstate: 'NEW'
-        jump: ACCEPT
-        action: insert
-        rule_num: '2'
+#    - name: iptables accept HTTPS
+#      iptables:
+#        chain: INPUT
+#        protocol: tcp
+#        destination_port: '{{ web_port }}'
+#        ctstate: 'NEW'
+#        jump: ACCEPT
+#        action: insert
+#        rule_num: '2'
 
-    - name: iptables accept HTTPS
-      iptables:
-        chain: INPUT
-        protocol: tcp
-        destination_port: '{{ oo_port }}'
-        ctstate: 'NEW'
-        jump: ACCEPT
-        action: insert
-        rule_num: '2'
+#    - name: iptables accept HTTPS
+#      iptables:
+#        chain: INPUT
+#        protocol: tcp
+#        destination_port: '{{ oo_port }}'
+#        ctstate: 'NEW'
+#        jump: ACCEPT
+#        action: insert
+#        rule_num: '2'
 
-    - name: iptables Persistent
-      shell: |
-        iptables-save
+#    - name: iptables Persistent
+#      shell: |
+#        iptables-save
 
 #    - name: fortknox onlyoffice storage and talk scripts (clear)
 #      file:
-#        path: "{{ project_directory }}/fortknox_application/fortknox-{{ item }}.sh"
+#        path: "{{ project_directory }}/fortknox_app/fortknox-{{ item }}.sh"
 #        state: absent
 #      with_items:
 #        - onlyoffice
@@ -390,7 +392,7 @@
 
 #    - name: fortknox onlyoffice (set)
 #      lineinfile:
-#        path: "{{ project_directory }}/fortknox_application/fortknox-onlyoffice.sh"
+#        path: "{{ project_directory }}/fortknox_app/fortknox-onlyoffice.sh"
 #        create: yes
 #        owner: root
 #        group: root
@@ -409,7 +411,7 @@
 
 #    - name: fortknox storage (set)
 #      lineinfile:
-#        path: "{{ project_directory }}/fortknox_application/fortknox-storage.sh"
+#        path: "{{ project_directory }}/fortknox_app/fortknox-storage.sh"
 #        create: yes
 #        owner: root
 #        group: root
@@ -435,7 +437,7 @@
 
 #    - name: fortknox talk (set)
 #      lineinfile:
-#        path: "{{ project_directory }}/fortknox_application/fortknox-talk.sh"
+#        path: "{{ project_directory }}/fortknox_app/fortknox-talk.sh"
 #        create: yes
 #        owner: root
 #        group: root
@@ -459,7 +461,7 @@
 
 #    - name: fortknox onlyoffice storage and talk (execute)
 #      shell:
-#        cmd: "{{ project_directory }}/fortknox_application/fortknox-{{ item }}.sh"
+#        cmd: "{{ project_directory }}/fortknox_app/fortknox-{{ item }}.sh"
 #      args:
 #        executable: /bin/bash
 #      with_items:
@@ -498,8 +500,8 @@
         - "        group: root"
         - "        mode: '0640'"
         - "      with_items:"
-        - "        - fortknox_application"
-        - "        - fortknox_database"
+        - "        - fortknox_app"
+        - "        - fortknox_db"
         - "   "
         - "    - name: upload fortknox archive to storage"
         - "      oci_object_storage_object:"
@@ -509,8 +511,8 @@
         - "        object_name: \"fortknox/{{ '{{ item }}' }}_backup.tar.gz\""
         - "        src: \"{{ project_directory }}/{{ '{{ item }}' }}_backup.tar.gz\""
         - "      with_items: "
-        - "        - fortknox_application "
-        - "        - fortknox_database "
+        - "        - fortknox_app "
+        - "        - fortknox_db "
 
     - name: fortknox backup systemd timer
       blockinfile:
@@ -521,7 +523,7 @@
         mode: '0644'
         block: |
           [Unit]
-          Description=Archives and copies fortknox_application and fortknox_database directories to cloud storage
+          Description=Archives and copies fortknox_app and fortknox_db directories to cloud storage
           [Timer]
           OnUnitActiveSec=12h
           Unit=fortknox-backup.service
@@ -537,7 +539,7 @@
         mode: '0644'
         block: |
           [Unit]
-          Description=Archives and copies fortknox_application and fortknox_database directories to cloud storage
+          Description=Archives and copies fortknox_app and fortknox_db directories to cloud storage
           After=network.target
           [Service]
           ExecStart=/usr/local/bin/ansible-playbook {{ project_directory }}/fortknox-backup.yml

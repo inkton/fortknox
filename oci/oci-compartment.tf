@@ -8,8 +8,10 @@ resource "oci_identity_compartment" "fk_compartment" {
   name                    = "${var.fk_prefix}"
 }
 
+/*
 resource "random_string" "fk_random" {
   length                            = 5
   upper                             = false
   special                           = false
 }
+*/

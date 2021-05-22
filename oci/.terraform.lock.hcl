@@ -2,19 +2,19 @@
 # Manual edits may be lost in future updates.
 
 provider "registry.terraform.io/hashicorp/oci" {
-  version = "4.26.0"
+  version = "4.27.0"
   hashes = [
-    "h1:Wy8GlWc5RaSCj4WngG0e1iTTKq3t9+L+FEu1I8hAyEw=",
-    "zh:13239f40bac49fc7c7b34d37630f17f2b98ade7fdae20208126edf0fbd049c42",
-    "zh:9441816a72de3f9fe527ecab9722aede02fc128f82338c8c1ff2b1f78bfc3e11",
-    "zh:96f5838c4a463433dbb71a84684eaae7a0c54a486f52471da40ac0b219e1cba0",
-    "zh:99ed48f1030dbec70545bff06c2b894949b895c8d000d39137b4a52087c3583d",
-    "zh:a0fe2f1798327495fb2c6068a8bc633fe5f55ad59055b7e4ca7cdd41cb0b779c",
-    "zh:ab2fef1693773698d3b3ea65a88be7eb6b091b74b5ed1e227d5a5149277bc7cd",
-    "zh:ba0f80f9d5951025d1db8c3f8b1c32734894bea80956d9bed94965396fb33f85",
-    "zh:e197527c15fb4072c939d08da1ed5068debe598ee737112af9e591b3d62f1c13",
-    "zh:f5cf458a18d9e5e086f0549d68bd1c645178393d13059c6522243a9e9bde56a9",
-    "zh:fe0ce77fce618ee9df0eb03e65fdb56dbdd09d5eeaf9a1ddc25d0763dfbbbf43",
+    "h1:EuRokyvrrGUhVN9OjGFlQKyPL5TgwBBkRGE2hNuW4Ko=",
+    "zh:023b4e4108fed425767d9772a725f02e827c4f059372ce23dcf9e9d1c522ff80",
+    "zh:43c29119973b2e1bca25e2d31e51116186f667f0b902f81bd6a22680c944f85a",
+    "zh:5274cbefc65a5c7d7855765faf2ecc853722c2e29bf5d5f354eb97399b8e5121",
+    "zh:55dd3aba7c4607fb89d3e34e45e4092b92430441a31a7c08d0efefe2d9da5988",
+    "zh:5eddf29edd87f387f11c1b8aba1b8b760fa99792ee4467b607c92f1e1cbd83d7",
+    "zh:86074b1f5320af2bb96c5fd7d38da73c60901cd44ec9a2deeb4fe913236668c9",
+    "zh:bcea24be6148ba989bc53da8b133431ef9b4fbdbb0b3ecd7f0445edc9a84744a",
+    "zh:e1f8b1d22ef74442d7150c093f83ec45a81bdb2259b62303b22c18d089b209bd",
+    "zh:e2ab52a17bd0f63fddcbeae8332ec2b9f852f8acdcda8bbb7e9d438725a86ea5",
+    "zh:feadaa0bb332684a0ec7bc7de86f76a661ff7aba9af1e5e7518ec02903ce3704",
   ]
 }
 

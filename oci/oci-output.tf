@@ -6,19 +6,19 @@ output "fk_output" {
   #############
 
   ## SSH ##
-  ssh ubuntu@${oci_core_instance.fk_instance.public_ip}
+  ssh oci@${oci_core_instance.fk_instance.public_ip}
 
   ## WebUI ##
   https://${oci_core_instance.fk_instance.public_ip}:${var.web_port}/
 
   ## Update / Ansible Rerun Instructions ##
-  ssh ubuntu@${oci_core_instance.fk_instance.public_ip}
+  ssh oci@${oci_core_instance.fk_instance.public_ip}
 
   # If updating containers, remove the old containers - this brings down the service until ansible is re-applied.
-  sudo docker rm -f cloudoffice_database cloudoffice_nextcloud cloudoffice_webproxy cloudoffice_onlyoffice
+  #sudo docker rm -f cloudoffice_database cloudoffice_nextcloud cloudoffice_webproxy cloudoffice_onlyoffice
 
   # Re-apply Ansible playbook with custom variables
-  sudo systemctl start cloudoffice-ansible-state.service
+  sudo systemctl start fortknox-ansible-state.service
 
   ## Destroying the Deployment ##
   # If destroying a project, delete all bucket objects before running terraform destroy, e.g:
