@@ -13,14 +13,10 @@ data "template_file" "fk_user_data" {
     project_url = var.project_url
     docker_network = var.docker_network
     docker_gw = var.docker_gw
-    docker_nextcloud = var.docker_nextcloud
-    docker_db = var.docker_db
     docker_webproxy = var.docker_webproxy
-    docker_onlyoffice = var.docker_onlyoffice
     user_name = var.user_name
     admin_password_cipher = oci_kms_encrypted_data.fk_kms_fk_admin_secret.ciphertext
-    db_password_cipher = oci_kms_encrypted_data.fk_kms_fk_db_secret.ciphertext 
-    oo_password_cipher = oci_kms_encrypted_data.fk_kms_fk_oo_secret.ciphertext
+    manager_password_cipher = oci_kms_encrypted_data.fk_kms_fk_manager_secret.ciphertext 
     bucket_user_key_cipher = oci_kms_encrypted_data.fk_kms_bucket_user_key_secret.ciphertext
     bucket_user_id = oci_identity_customer_secret_key.fk_bucket_user_key.id
     oci_kms_endpoint = data.oci_kms_vault.fk_disk_vault.crypto_endpoint
@@ -30,14 +26,13 @@ data "template_file" "fk_user_data" {
     oci_region = var.oci_region
     oci_root_compartment = var.oci_root_compartment
     web_port = var.web_port
-    oo_port = var.oo_port
     project_directory = var.project_directory
   }
 }
 
 resource "oci_core_instance" "fk_instance" {
 
-  for_each = var.app_names
+  for_each = var.apps
 
   compartment_id          = oci_identity_compartment.fk_compartment.id
   availability_domain     = data.oci_identity_availability_domain.fk_availability_domain.name
@@ -62,10 +57,3 @@ resource "oci_core_instance" "fk_instance" {
   }
   depends_on                = [oci_core_subnet.fk_subnet, oci_objectstorage_bucket.fk_bucket]
 } 
-
-/*
-  provisioner "file" {
-    source      = "../playbooks"
-    destination = var.project_directory
-  }
-*/

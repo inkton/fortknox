@@ -39,18 +39,10 @@ resource "oci_kms_encrypted_data" "fk_kms_fk_admin_secret" {
   depends_on              = [data.oci_kms_vault.fk_vault, data.oci_kms_key.fk_key]
 }
 
-resource "oci_kms_encrypted_data" "fk_kms_fk_db_secret" {
+resource "oci_kms_encrypted_data" "fk_kms_fk_manager_secret" {
   crypto_endpoint         = data.oci_kms_vault.fk_vault.crypto_endpoint
   key_id                  = data.oci_kms_key.fk_key.id
-  plaintext               = base64encode(var.db_password)
-
-  depends_on              = [data.oci_kms_vault.fk_vault, data.oci_kms_key.fk_key]
-}
-
-resource "oci_kms_encrypted_data" "fk_kms_fk_oo_secret" {
-  crypto_endpoint         = data.oci_kms_vault.fk_vault.crypto_endpoint
-  key_id                  = data.oci_kms_key.fk_key.id
-  plaintext               = base64encode(var.oo_password)
+  plaintext               = base64encode(var.manager_password)
 
   depends_on              = [data.oci_kms_vault.fk_vault, data.oci_kms_key.fk_key]
 }

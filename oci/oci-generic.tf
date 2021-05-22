@@ -63,17 +63,12 @@ variable "apps" {
 
 variable "admin_password" {
   type                     = string
-  description              = "Password for WebUI access"
+  description              = "Admin password"
 }
 
-variable "db_password" {
+variable "manager_password" {
   type                     = string
-  description              = "Nextcloud application db password"
-}
-
-variable "oo_password" {
-  type                     = string
-  description              = "Nextcloud application onlyoffice password"
+  description              = "Manager password"
 }
 
 variable "project_url" {

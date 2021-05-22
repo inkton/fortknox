@@ -17,21 +17,13 @@
         key_id: "{{ oci_kms_keyid }}"
       register: admin_password_decrypt
 
-    - name: fetch decrypt db pass
+    - name: fetch decrypt manager pass
       oci_key_management_decrypted_data:
         auth_type: "instance_principal"
-        ciphertext: "{{ db_password_cipher }}"
+        ciphertext: "{{ manager_password_cipher }}"
         service_endpoint: "{{ oci_kms_endpoint }}"
         key_id: "{{ oci_kms_keyid }}"
-      register: db_password_decrypt
-
-#    - name: fetch decrypt oo pass
-#      oci_key_management_decrypted_data:
-#        auth_type: "instance_principal"
-#        ciphertext: "{{ oo_password_cipher }}"
-#        service_endpoint: "{{ oci_kms_endpoint }}"
-#        key_id: "{{ oci_kms_keyid }}"
-#      register: oo_password_decrypt
+      register: manager_password_decrypt
 
 #    - name: fetch decrypt bucket user key
 #      oci_key_management_decrypted_data:
@@ -259,7 +251,7 @@
 #            ipv4_address: "{{ docker_db }}"
 #        env:
 #          MYSQL_ROOT_PASSWORD: "{{ admin_password_decrypt.decrypted_data.plaintext | b64decode }}"
-#          MYSQL_PASSWORD: "{{ db_password_decrypt.decrypted_data.plaintext | b64decode }}"
+#          MYSQL_PASSWORD: "{{ manager_password_decrypt.decrypted_data.plaintext | b64decode }}"
 #          MYSQL_DATABASE: fortknox
 #          MYSQL_USER: fortknox
 #          PUID: "{{ db_user.uid }}"
@@ -287,7 +279,7 @@
 #          TRUSTED_PROXIES: "{{ instance_public_ip }} {{ docker_webproxy }}"
 #          OVERWRITEHOST: "{{ instance_public_ip }}:{{ web_port }}"
 #          OVERWRITEPROTOCOL: https
-#          MYSQL_PASSWORD: "{{ db_password_decrypt.decrypted_data.plaintext | b64decode }}"
+#          MYSQL_PASSWORD: "{{ manager_password_decrypt.decrypted_data.plaintext | b64decode }}"
 #          MYSQL_DATABASE: fortknox
 #          MYSQL_USER: fortknox
 #          MYSQL_HOST: "{{ docker_db }}"
