@@ -56,9 +56,9 @@ variable "user_name" {
   description              = "The username"
 }
 
-variable "app_name" {
-  type                     = string
-  description              = "The app name"
+variable "apps" {
+  type                     = map
+  description              = "The apps"
 }
 
 variable "admin_password" {

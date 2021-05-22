@@ -40,8 +40,11 @@ resource "oci_core_network_security_group" "fk_network_security_group" {
 }
 
 resource "oci_core_default_security_list" "fk_security_list" {
+
+  for_each = var.apps
+
   manage_default_resource_id   = oci_core_vcn.fk_vcn.default_security_list_id
-  display_name                 = "${var.fk_prefix}"
+  display_name                 = "${var.fk_prefix}-${each.key}"
   egress_security_rules {
     protocol                     = "all"
     destination                  = "0.0.0.0/0"
@@ -72,7 +75,7 @@ resource "oci_core_default_security_list" "fk_security_list" {
   }
   ingress_security_rules {
     protocol                     = 6
-    source                       = "${oci_core_instance.fk_instance.public_ip}/32"
+    source                       = "${oci_core_instance.fk_instance[each.key].public_ip}/32"
     tcp_options {
       max                          = var.web_port
       min                          = var.web_port
@@ -80,7 +83,7 @@ resource "oci_core_default_security_list" "fk_security_list" {
   }
   ingress_security_rules {
     protocol                     = 6
-    source                       = "${oci_core_instance.fk_instance.public_ip}/32"
+    source                       = "${oci_core_instance.fk_instance[each.key].public_ip}/32"
     tcp_options {
       max                          = var.oo_port
       min                          = var.oo_port

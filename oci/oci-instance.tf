@@ -18,7 +18,6 @@ data "template_file" "fk_user_data" {
     docker_webproxy = var.docker_webproxy
     docker_onlyoffice = var.docker_onlyoffice
     user_name = var.user_name
-    app_name = var.app_name
     admin_password_cipher = oci_kms_encrypted_data.fk_kms_fk_admin_secret.ciphertext
     db_password_cipher = oci_kms_encrypted_data.fk_kms_fk_db_secret.ciphertext 
     oo_password_cipher = oci_kms_encrypted_data.fk_kms_fk_oo_secret.ciphertext
@@ -36,23 +35,19 @@ data "template_file" "fk_user_data" {
   }
 }
 
-/*
-  provisioner "file" {
-    source      = "../playbooks"
-    destination = var.project_directory
-  }
-*/
-
 resource "oci_core_instance" "fk_instance" {
+
+  for_each = var.app_names
+
   compartment_id          = oci_identity_compartment.fk_compartment.id
   availability_domain     = data.oci_identity_availability_domain.fk_availability_domain.name
-  display_name            = "${var.fk_prefix}-${var.app_name}"
+  display_name            = "${var.fk_prefix}-${each.key}"
   shape                   = var.oci_instance_shape  
   availability_config {
     recovery_action         = "RESTORE_INSTANCE"
   }
   create_vnic_details {
-    display_name            = "${var.fk_prefix}-${var.app_name}"
+    display_name            = "${var.fk_prefix}-${each.key}"
     subnet_id               = oci_core_subnet.fk_subnet.id
   }
   source_details {
@@ -67,3 +62,10 @@ resource "oci_core_instance" "fk_instance" {
   }
   depends_on                = [oci_core_subnet.fk_subnet, oci_objectstorage_bucket.fk_bucket]
 } 
+
+/*
+  provisioner "file" {
+    source      = "../playbooks"
+    destination = var.project_directory
+  }
+*/
