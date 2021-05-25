@@ -1,0 +1,5 @@
+---
+# role: ansible-role-phabricator
+# file: vars/Suse.yml
+
+phabricator_packages: []

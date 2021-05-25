@@ -1,0 +1,5 @@
+---
+# role: ansible-role-phabricator
+# file: vars/Archlinux.yml
+
+phabricator_packages: []

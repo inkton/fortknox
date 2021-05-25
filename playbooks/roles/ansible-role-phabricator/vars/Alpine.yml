@@ -1,0 +1,5 @@
+---
+# role: ansible-role-phabricator
+# file: vars/Alpine.yml
+
+phabricator_packages: []

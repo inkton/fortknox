@@ -8,8 +8,7 @@ apps = {
 }
 
 admin_password = "helloworld8"
-db_password = "helloworld8"
-oo_password = "helloworld8"
+manager_password = "helloworld8"
 ssh_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDlSU8N7yy5GXnNlXg38yZd4dNYItF4rGmGyEJE0H6Z1E7SJt3dmGrTrz+b/EYc5Ambl2rpX+1/mbYAxREd/ZZ0fzlpMARXJNpvivxOOV1yjccOUXc/eKAcVGexybl0GwCqTaBl6/i+HhRDVY1tw7oGUchbbvZRssWNRh/zozIC19x8Ms86X0WpU/FZMcYDaPTeFd4b4xFWecVcfjApnQxVPD3zNTtr0pSDDxVs07ziGMq8JuFwIG+S099KEB1cVwuXNYS7gMLstqfmORaudiVgrFWPv4CqZFg6PKEVKwSKK7xXAqhABLBAvBH7AW7qw9Xaus92e2QJfKDH7ucRuMJz"
 mgmt_cidr = "0.0.0.0/0"
 

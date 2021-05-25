@@ -16,7 +16,7 @@ output "fk_output" {
         https://${oci_core_instance.fk_instance[app_tag].public_ip}:${var.web_port}/
 
         ## Update / Ansible Rerun Instructions ##
-        ssh oci@${oci_core_instance.fk_instance[app_tag].public_ip}
+        ssh opc@${oci_core_instance.fk_instance[app_tag].public_ip}
 
         # If updating containers, remove the old containers - this brings down the service until ansible is re-applied.
         #sudo docker rm -f cloudoffice_database cloudoffice_nextcloud cloudoffice_webproxy cloudoffice_onlyoffice

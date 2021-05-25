@@ -4,6 +4,10 @@
   connection: local
   collections:
     - oracle.oci
+  roles:
+    - ansible-role-mysql
+    - ansible-role-nginx
+    - ansible-role-phabricator
   gather_facts: true
   become: true
   become_user: root
@@ -128,7 +132,8 @@
       file:
         path: "{{ item }}"
         state: directory
-        owner: www-data
+        #owner: www-data
+        owner: opc
         mode: '0750'
       with_items:
         - "{{ project_directory }}/fortknox_app"

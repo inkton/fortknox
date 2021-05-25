@@ -1,0 +1,5 @@
+---
+# role: ansible-role-phabricator
+# file: vars/Debian.yml
+
+phabricator_packages: []

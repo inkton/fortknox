@@ -31,7 +31,7 @@ resource "oci_kms_key" "fk_kms_key" {
   protection_mode         = "SOFTWARE"
 }
 
-resource "oci_kms_encrypted_data" "fk_kms_fk_admin_secret" {
+resource "oci_kms_encrypted_data" "fk_kms_admin_secret" {
   crypto_endpoint         = data.oci_kms_vault.fk_vault.crypto_endpoint
   key_id                  = data.oci_kms_key.fk_key.id
   plaintext               = base64encode(var.admin_password)
@@ -39,7 +39,7 @@ resource "oci_kms_encrypted_data" "fk_kms_fk_admin_secret" {
   depends_on              = [data.oci_kms_vault.fk_vault, data.oci_kms_key.fk_key]
 }
 
-resource "oci_kms_encrypted_data" "fk_kms_fk_manager_secret" {
+resource "oci_kms_encrypted_data" "fk_kms_manager_secret" {
   crypto_endpoint         = data.oci_kms_vault.fk_vault.crypto_endpoint
   key_id                  = data.oci_kms_key.fk_key.id
   plaintext               = base64encode(var.manager_password)

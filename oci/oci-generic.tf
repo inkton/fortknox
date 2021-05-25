@@ -76,36 +76,6 @@ variable "project_url" {
   description              = "URL of the git project"
 }
 
-variable "docker_network" {
-  type                     = string
-  description              = "docker network ip"
-}
-
-variable "docker_gw" {
-  type                     = string
-  description              = "docker network gateway ip"
-}
-
-variable "docker_nextcloud" {
-  type                     = string
-  description              = "nextcloud app container ip"
-}
-
-variable "docker_webproxy" {
-  type                     = string
-  description              = "https web proxy container ip"
-}
-
-variable "docker_db" {
-  type                     = string
-  description              = "db container ip"
-}
-
-variable "docker_onlyoffice" {
-  type                     = string
-  description              = "onlyoffice container"
-}
-
 variable "project_directory" {
   type                     = string
   description              = "Location to install/run project"
@@ -116,12 +86,6 @@ variable "web_port" {
   type                     = string
   description              = "Port to run web proxy"
   default                  = "443"
-}
-
-variable "oo_port" {
-  type                     = string
-  description              = "Port to run onlyoffice"
-  default                  = "8443"
 }
 
 variable "kms_vault_id" {
