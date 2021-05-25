@@ -1,5 +1,6 @@
 ---
 # role: ansible-role-phabricator
 # file: vars/RedHat.yml
+# php80, php80-php-fpm, php80-php-cli, php80-php-mysql, php80-php-process, php80-php-process, php80-php-devel, php80-php-gd, php80-php-mbstring, php80-php-pecl-apcu, php80-php-pecl-zip
 
-phabricator_packages: [php80, php80-php-mysql, php80-php-process, php80-php-process, php80-php-devel, php80-php-gd, php80-php-mbstring, php80-php-pecl-apcu, php80-php-pecl-zip]
+phabricator_packages: []

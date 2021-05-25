@@ -74,13 +74,13 @@ cd playbooks/
 /usr/local/bin/ansible-playbook fortknox_oci.yml --extra-vars 'admin_password_cipher=${admin_password_cipher} manager_password_cipher=${manager_password_cipher} oci_kms_endpoint=${oci_kms_endpoint} oci_kms_keyid=${oci_kms_keyid} oci_storage_namespace=${oci_storage_namespace} oci_storage_bucketname=${oci_storage_bucketname} oci_region=${oci_region} oci_root_compartment=${oci_root_compartment} bucket_user_key_cipher=${bucket_user_key_cipher} bucket_user_id=${bucket_user_id} web_port=${web_port} project_directory=${project_directory}'
 EOM
 
-# Start / Enable cloudoffice-ansible-state
-chmod +x /opt/cloudoffice-ansible-state.sh
+# Start / Enable fortknox-ansible-state
+chmod +x '${project_directory}/fortknox-ansible-state.sh'
 systemctl daemon-reload
-systemctl start cloudoffice-ansible-state.timer
-systemctl start cloudoffice-ansible-state.service
-systemctl enable cloudoffice-ansible-state.timer
-systemctl enable cloudoffice-ansible-state.service
+systemctl start fortknox-ansible-state.timer
+systemctl start fortknox-ansible-state.service
+systemctl enable fortknox-ansible-state.timer
+systemctl enable fortknox-ansible-state.service
 
 EOM
 
