@@ -2,11 +2,11 @@
 - name: Git checkout arcanist
   ansible.builtin.git:
     repo: https://github.com/inkton/arcanist.git
-    dest: "{{ project_directory }}/fortknox_app/bin/arcanist"
+    dest: "{{ project_directory }}/fortknox_app/bin"
     accept_hostkey: true
 
 - name: Git checkout phabricator
   ansible.builtin.git:
     repo: https://github.com/inkton/phabricator.git
-    dest: "{{ project_directory }}/fortknox_app/var/www/phabricator"
-
+    dest: "{{ project_directory }}/fortknox_app/var/www"
+    

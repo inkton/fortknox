@@ -8,10 +8,14 @@ data "oci_identity_availability_domain" "fk_availability_domain" {
 }
 
 data "template_file" "fk_user_data" {
+
+  for_each = var.apps
+
   template                = file("oci-user_data.tpl")
   vars                    = {
     project_url = var.project_url
     user_name = var.user_name
+    app_tag = "${each.key}"
     admin_password_cipher = oci_kms_encrypted_data.fk_kms_admin_secret.ciphertext
     manager_password_cipher = oci_kms_encrypted_data.fk_kms_manager_secret.ciphertext 
     bucket_user_key_cipher = oci_kms_encrypted_data.fk_kms_bucket_user_key_secret.ciphertext
@@ -24,7 +28,7 @@ data "template_file" "fk_user_data" {
     oci_root_compartment = var.oci_root_compartment
     web_port = var.web_port
     project_directory = var.project_directory
-  }
+  }  
 }
 
 resource "oci_core_instance" "fk_instance" {

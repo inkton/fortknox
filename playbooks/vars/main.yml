@@ -1,0 +1,57 @@
+# mysql
+
+mysql_packages:
+   - https://dev.mysql.com/get/mysql-community-common-8.0.21-1.el7.x86_64.rpm
+   - https://dev.mysql.com/get/mysql-community-libs-8.0.21-1.el7.x86_64.rpm
+   - https://dev.mysql.com/get/mysql-community-client-8.0.21-1.el7.x86_64.rpm
+   - https://dev.mysql.com/get/mysql-community-server-8.0.21-1.el7.x86_64.rpm
+   - https://dev.mysql.com/get/mysql-shell-8.0.21-1.el7.x86_64.rpm
+   - MySQL-python
+
+# php
+
+php_memory_limit: "128M"
+php_max_execution_time: "90"
+php_upload_max_filesize: "256M"
+
+# nginx
+
+nginx_vhosts:
+  - listen: "80 default_server"
+    server_name: "{{ app_tag }}.{{ user_name }}.fortknox.dev"
+    server_name_redirect: "www.{{ app_tag }}.{{ user_name }}.fortknox.dev"
+    root: "{{ project_directory }}/fortknox_app/var/www"
+    index: "index.php index.html index.htm"
+    error_page: ""
+    access_log: ""
+    error_log: ""
+    state: "present"
+    template: "{{ nginx_vhost_template }}"
+    filename: "{{ app_tag }}.{{ user_name }}.fortknox.dev.conf"
+    extra_parameters: |
+      location ~ \.php$ {
+          fastcgi_split_path_info ^(.+\.php)(/.+)$;
+          fastcgi_pass unix:/var/run/php5-fpm.sock;
+          fastcgi_index index.php;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          include fastcgi_params;
+      }
+  - listen: "443 ssl http2"
+    server_name: "{{ app_tag }}.{{ user_name }}.fortknox.dev"
+    server_name_redirect: "www.{{ app_tag }}.{{ user_name }}.fortknox.dev"
+    root: "{{ project_directory }}/fortknox_app/var/www"
+    index: "index.php index.html index.htm"
+    error_page: ""
+    access_log: ""
+    error_log: ""
+    state: "present"
+    template: "{{ nginx_vhost_template }}"
+    filename: "{{ app_tag }}.{{ user_name }}.fortknox.dev.conf"
+    extra_parameters: |
+      location ~ \.php$ {
+          fastcgi_split_path_info ^(.+\.php)(/.+)$;
+          fastcgi_pass unix:/var/run/php5-fpm.sock;
+          fastcgi_index index.php;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          include fastcgi_params;
+      }

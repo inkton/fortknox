@@ -71,7 +71,7 @@ cd ${project_directory}/repo
 # Change to playbooks directory
 cd playbooks/
 # Execute playbook
-/usr/local/bin/ansible-playbook fortknox_oci.yml --extra-vars 'admin_password_cipher=${admin_password_cipher} manager_password_cipher=${manager_password_cipher} oci_kms_endpoint=${oci_kms_endpoint} oci_kms_keyid=${oci_kms_keyid} oci_storage_namespace=${oci_storage_namespace} oci_storage_bucketname=${oci_storage_bucketname} oci_region=${oci_region} oci_root_compartment=${oci_root_compartment} bucket_user_key_cipher=${bucket_user_key_cipher} bucket_user_id=${bucket_user_id} web_port=${web_port} project_directory=${project_directory}'
+/usr/local/bin/ansible-playbook fortknox_oci.yml --extra-vars 'user_name=${user_name} app_tag=${app_tag} admin_password_cipher=${admin_password_cipher} manager_password_cipher=${manager_password_cipher} oci_kms_endpoint=${oci_kms_endpoint} oci_kms_keyid=${oci_kms_keyid} oci_storage_namespace=${oci_storage_namespace} oci_storage_bucketname=${oci_storage_bucketname} oci_region=${oci_region} oci_root_compartment=${oci_root_compartment} bucket_user_key_cipher=${bucket_user_key_cipher} bucket_user_id=${bucket_user_id} web_port=${web_port} project_directory=${project_directory}'
 EOM
 
 # Start / Enable fortknox-ansible-state
