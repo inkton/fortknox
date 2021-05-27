@@ -54,7 +54,7 @@ resource "oci_core_instance" "fk_instance" {
   }
   metadata = {
     ssh_authorized_keys       = var.ssh_key
-    user_data                 = base64encode(data.template_file.fk_user_data.rendered)
+    user_data                 = base64encode(data.template_file.fk_user_data[each.key].rendered)
   }
   depends_on                = [oci_core_subnet.fk_subnet, oci_objectstorage_bucket.fk_bucket]
 } 

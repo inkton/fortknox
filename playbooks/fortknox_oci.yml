@@ -7,7 +7,7 @@
   vars_files:
     - vars/main.yml    
   roles:    
-    - ansible-role-mysql
+#    - ansible-role-mysql
     - ansible-role-php
     - ansible-role-nginx
     - ansible-role-phabricator

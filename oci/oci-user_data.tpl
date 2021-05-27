@@ -51,14 +51,12 @@ EOM
 # Create fortknox-ansible-state script
 tee '${project_directory}/fortknox-ansible-state.sh' << EOM
 #!/bin/bash
-# Install git pre-requisties
-sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-sudo yum -y install https://rpms.remirepo.net/enterprise/remi-release-7.rpm
-sudo yum -y install yum-utils
-sudo yum-config-manager --enable remi-safe
-# Update package list
 yum check-update
-yum install -y tmux git rh-python38
+# Install pre-requisties
+yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+yum -y install https://rpms.remirepo.net/enterprise/remi-release-7.rpm
+yum -y install yum-utils tmux git rh-python38
+yum-config-manager --enable remi-safe
 # Install the oci collection
 pip3 install --upgrade pip ansible oci PyMySQL
 /usr/local/bin/ansible-galaxy collection install oracle.oci
