@@ -1,13 +1,12 @@
 ---
-dependencies: []
-
 galaxy_info:
   role_name: mysql
-  author: geerlingguy
-  description: MySQL server for RHEL/CentOS and Debian/Ubuntu.
-  company: "Midwestern Mac, LLC"
-  license: "license (BSD, MIT)"
-  min_ansible_version: 2.4
+  author: Lean Delivery Team <team@lean-delivery.com>
+  description: MySQL server for RHEL/CentOS/Debian/Ubuntu
+  company: EPAM Systems
+  issue_tracker_url: https://github.com/lean-delivery/ansible-role-mysql/issues
+  license: Apache
+  min_ansible_version: 2.9
   platforms:
     - name: EL
       versions:
@@ -15,16 +14,29 @@ galaxy_info:
         - 8
     - name: Ubuntu
       versions:
-        - all
+        - bionic
     - name: Debian
       versions:
-        - all
-    - name: Archlinux
+        - stretch
+        - buster
+  versions_mysql:
+    - name: mysql
       versions:
-        - all
+        - 5.5
+        - 5.6
+        - 5.7
+        - 8.0
+    - name: mariadb
+      versions:
+        - 10.3
+        - 10.4
+        - 10.5
   galaxy_tags:
     - database
     - mysql
     - mariadb
     - db
     - sql
+dependencies: []
+collections:
+  - community.mysql

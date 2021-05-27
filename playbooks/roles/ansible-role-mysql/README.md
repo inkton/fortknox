@@ -1,21 +1,80 @@
 # Ansible Role: MySQL
+[![License](https://img.shields.io/badge/license-Apache-green.svg?style=flat)](https://raw.githubusercontent.com/lean-delivery/ansible-role-mysql/master/LICENSE)
+[![Build status](https://gitlab.com/lean-delivery/ansible-role-mysql/badges/master/pipeline.svg)](https://gitlab.com/lean-delivery/ansible-role-mysql/-/commits/master)
+[![Galaxy](https://img.shields.io/badge/galaxy-lean__delivery.mysql-blue.svg)](https://galaxy.ansible.com/lean_delivery/mysql)
+![Ansible](https://img.shields.io/ansible/role/d/35413.svg)
+![Ansible](https://img.shields.io/badge/dynamic/json.svg?label=min_ansible_version&url=https%3A%2F%2Fgalaxy.ansible.com%2Fapi%2Fv1%2Froles%2F35413%2F&query=$.min_ansible_version)
 
-[![CI](https://github.com/geerlingguy/ansible-role-mysql/workflows/CI/badge.svg?event=push)](https://github.com/geerlingguy/ansible-role-mysql/actions?query=workflow%3ACI)
+## Summary
 
-Installs and configures MySQL or MariaDB server on RHEL/CentOS or Debian/Ubuntu servers.
+This role installs and configures MySQL or MariaDB server on RHEL/CentOS servers.
+
+## Role tasks
+
+  - Installs MySQL/MariaDB
+  - Reset root password for mysql
+  - Create db and users
 
 ## Requirements
 
-No special requirements; note that this role requires root access, so either run it in a playbook with a global `become: yes`, or invoke the role in your playbook like:
-
-    - hosts: database
-      roles:
-        - role: geerlingguy.mysql
-          become: yes
+  - Supported versions:
+      - Oracle Mysql
+          - 5.5
+          - 5.6
+          - 5.7
+          - 8.0
+      - Mariadb
+          - 10.3
+          - 10.4
+          - 10.5
+  - Supported OS:
+      - RHEL
+          - 7
+          - 8
+      - CentOS
+          - 7
+          - 8
+      - Ubuntu
+          - 18.04
+      - Debian
+          - 9
+          - 10
 
 ## Role Variables
 
-Available variables are listed below, along with default values (see `defaults/main.yml`):
+Available variables are listed below, along with default values:
+
+Mysql/MariaDB repository settings:
+
+    mysql_repo: *default value depends on OS*   
+    mysql_gpgkey: *default value depends on OS*   
+    mysql_apt_keyserver: *default value depends on OS*  
+    mysql_repofile: /etc/yum.repos.d/mysql.repo|/etc/yum.repos.d/mariadb.repo
+    mysql_apt_key_id: *default value depends on OS*   
+    mysql_repo_disable_list: *default - undefined*. For CentOS 8 it's now list of `AppStream` and `Stream-AppStream`.
+
+    mysql_packages:
+      - mysql-community-server   # (mysql-community-server/MariaDB-server)
+      - mysql-community-client   # (mysql-community-client/MariaDB-client)
+      
+If you want to select a specific minor version of package, you can enter appropriate package name, for instance:
+
+    mysql_packages:
+      - mysql-community-server-8.0.16-2.el7.x86_64
+      - mysql-community-client-8.0.16-2.el7.x86_64
+
+Alternatively, you can define the packages as a list of external urls by setting the variable `mysql_artifacts`, e.g.:
+
+    mysql_artifacts:
+      - https://downloads.mysql.com/archives/get/p/23/file/mysql-community-client_5.7.31-1ubuntu18.04_amd64.deb
+      - https://downloads.mysql.com/archives/get/p/23/file/mysql-community-server_5.7.31-1ubuntu18.04_amd64.deb
+      
+### NOTE: *This option was tested only for deb-based packages at the moment.*
+                                 # (MariaDB-common)
+    mysql_daemon: mysqld         # (mysqld/mariadb)
+    mysql_version: 5.7           # (for mysql = 5.5/5.6/5.7; for mariadb = last (10.5) )
+
+(OS-specific, RedHat/CentOS defaults listed here) Packages to be installed. In some situations, you may need to add additional packages, like `mysql-devel`.
 
     mysql_user_home: /root
     mysql_user_name: root
@@ -28,18 +87,6 @@ The home directory inside which Python MySQL settings will be stored, which Ansi
     mysql_root_password: root
 
 The MySQL root user account details.
-
-    mysql_root_password_update: false
-
-Whether to force update the MySQL root user's password. By default, this role will only change the root user's password when MySQL is first configured. You can force an update by setting this to `yes`.
-
-> Note: If you get an error like `ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)` after a failed or interrupted playbook run, this usually means the root password wasn't originally updated to begin with. Try either removing  the `.my.cnf` file inside the configured `mysql_user_home` or updating it and setting `password=''` (the insecure default password). Run the playbook again, with `mysql_root_password_update` set to `yes`, and the setup should complete.
-
-> Note: If you get an error like `ERROR 1698 (28000): Access denied for user 'root'@'localhost' (using password: YES)` when trying to log in from the CLI you might need to run as root or sudoer.
-
-    mysql_enabled_on_startup: true
-
-Whether MySQL should be enabled on startup.
 
     mysql_config_file: *default value depends on OS*
     mysql_config_include_dir: *default value depends on OS*
@@ -58,8 +105,6 @@ A list of files that should override the default global my.cnf. Each item in the
 
 The MySQL databases to create. A database has the values `name`, `encoding` (defaults to `utf8`), `collation` (defaults to `utf8_general_ci`) and `replicate` (defaults to `1`, only used if replication is configured). The formats of these are the same as in the `mysql_db` module.
 
-You can also delete a database (or ensure it's not on the server) by setting `state` to `absent` (defaults to `present`).
-
     mysql_users: []
 
 The MySQL users and their privileges. A user has the values:
@@ -73,20 +118,6 @@ The MySQL users and their privileges. A user has the values:
   - `state`  (defaults to `present`)
 
 The formats of these are the same as in the `mysql_user` module.
-
-    mysql_packages:
-      - mysql
-      - mysql-server
-
-(OS-specific, RedHat/CentOS defaults listed here) Packages to be installed. In some situations, you may need to add additional packages, like `mysql-devel`.
-
-    mysql_enablerepo: ""
-
-(RedHat/CentOS only) If you have enabled any additional repositories (might I suggest geerlingguy.repo-epel or geerlingguy.repo-remi), those repositories can be listed under this variable (e.g. `remi,epel`). This can be handy, as an example, if you want to install later versions of MySQL.
-
-    mysql_python_package_debian: python3-mysqldb
-
-(Ubuntu/Debian only) If you need to explicitly override the MySQL Python package, you can set it here. Set this to `python-mysqldb` if using older distributions running Python 2.
 
     mysql_port: "3306"
     mysql_bind_address: '0.0.0.0'
@@ -122,78 +153,110 @@ The rest of the settings in `defaults/main.yml` control MySQL's memory usage and
     mysql_expire_logs_days: "10"
     mysql_replication_role: ''
     mysql_replication_master: ''
-    mysql_replication_user: {}
+    mysql_replication_user: []
 
-Replication settings. Set `mysql_server_id` and `mysql_replication_role` by server (e.g. the master would be ID `1`, with the `mysql_replication_role` of `master`, and the slave would be ID `2`, with the `mysql_replication_role` of `slave`). The `mysql_replication_user` uses the same keys as individual list items in `mysql_users`, and is created on master servers, and used to replicate on all the slaves.
+Replication settings. Set `mysql_server_id` and `mysql_replication_role` by server (e.g. the master would be ID `1`, with the `mysql_replication_role` of `master`, and the slave would be ID `2`, with the `mysql_replication_role` of `slave`). The `mysql_replication_user` uses the same keys as `mysql_users`, and is created on master servers, and used to replicate on all the slaves.
 
 `mysql_replication_master` needs to resolve to an IP or a hostname which is accessable to the Slaves (this could be a `/etc/hosts` injection or some other means), otherwise the slaves cannot communicate to the master.
 
-### Later versions of MySQL on CentOS 7
+## additional_parameters
+Also you can set other parametrs, which are not listed here and it will be written to the configuration file `my.cnf`. 
 
-If you want to install MySQL from the official repository instead of installing the system default MariaDB equivalents, you can add the following `pre_tasks` task in your playbook:
-
+Example:
 ```yaml
-  pre_tasks:
-    - name: Install the MySQL repo.
-      yum:
-        name: http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
-        state: present
-      when: ansible_os_family == "RedHat"
-  
-    - name: Override variables for MySQL (RedHat).
-      set_fact:
-        mysql_daemon: mysqld
-        mysql_packages: ['mysql-server']
-        mysql_log_error: /var/log/mysqld.err
-        mysql_syslog_tag: mysqld
-        mysql_pid_file: /var/run/mysqld/mysqld.pid
-        mysql_socket: /var/lib/mysql/mysql.sock
-      when: ansible_os_family == "RedHat"
+     additional_parameters:
+        - name: mysql_expire_logs_days
+          value: 11
 ```
+#
 
 ### MariaDB usage
 
 This role works with either MySQL or a compatible version of MariaDB. On RHEL/CentOS 7+, the mariadb database engine was substituted as the default MySQL replacement package. No modifications are necessary though all of the variables still reference 'mysql' instead of mariadb.
 
-#### Ubuntu 14.04 and 16.04 MariaDB configuration
-
-On Ubuntu, the package names are named differently, so the `mysql_package` variable needs to be altered. Set the following variables (at a minimum):
-
-    mysql_packages:
-      - mariadb-client
-      - mariadb-server
-      - python-mysqldb
-
 ## Dependencies
 
-None.
+Due to new breaking changes in MySQL 8.0 we included modified module `mysql_user`. It's shipping with that role and resides in `library` directory. Current Ansible module `mysql_user` is not compatible with latest changes but fixes are already in place and new Ansible release 2.8 should not require customized module to run.
 
-## Example Playbook
+## Example Playbooks
 
-    - hosts: db-servers
-      become: yes
-      vars_files:
-        - vars/main.yml
-      roles:
-        - { role: geerlingguy.mysql }
-
-*Inside `vars/main.yml`*:
-
-    mysql_root_password: super-secure-password
+### Installing MySQL 5.7 version:
+```yaml
+- hosts: db-servers
+  roles:
+    - role: lean_delivery.mysql
+  vars:
+    mysql_root_password: Super_P@s$0rd
     mysql_databases:
-      - name: example_db
+      - name: example2_db
         encoding: latin1
         collation: latin1_general_ci
     mysql_users:
-      - name: example_user
+      - name: example2_user
         host: "%"
-        password: similarly-secure-password
-        priv: "example_db.*:ALL"
+        password: Sime32_U$er_p@ssw0rd
+        priv: "example2_db.*:ALL"
+    mysql_port: 3306
+    mysql_bind_address: '0.0.0.0'
+    mysql_daemon: mysqld
+    mysql_version: 5.7
+``` 
+
+### Installing MySQL 8.0 version:
+```yaml
+- hosts: db-servers
+  roles:
+    - role: lean_delivery.mysql
+  vars:
+    mysql_root_password: 88TEM-veDRE<888serd
+    mysql_databases:
+      - name: example2_db
+        encoding: latin1
+        collation: latin1_general_ci
+    mysql_users:
+      - name: example2_user
+        host: "%"
+        password: Sime32-SRRR-password
+        priv: "example2_db.*:ALL"
+    mysql_port: 3306
+    mysql_bind_address: '0.0.0.0'
+    mysql_daemon: mysqld
+    mysql_version: 8.0
+    mysql_packages:
+      - mysql-server
+``` 
+
+### Installing MariaDB:
+```yaml
+- hosts: db-servers
+  roles:
+    - role: lean_delivery.mysql
+  vars:
+    mysql_root_password: 88TEM-veDRE<888serd
+    mysql_databases:
+      - name: example2_db
+        encoding: latin1
+        collation: latin1_general_ci
+    mysql_users:
+      - name: example2_user
+        host: "%"
+        password: Sime32-SRRR-password
+        priv: "example2_db.*:ALL"
+    mysql_port: 3306
+    mysql_bind_address: '0.0.0.0'
+    mysql_daemon: mariadb
+``` 
+
+
+__Note__: CentOS always do password reset via `rescue` section: It should be noted that the play continues if a rescue section completes successfully as it ‘erases’ the error status (but not the reporting), this means it will appear in the **playbook statistics** ONLY.
+
+**ATTENTION!** Note that override parameters in playbook have to be set as `role parameters` (see example above). Parameters set as usual hostvars or inventory parameters will not supercede default role parameters set by role scenario depending on OS version etc. 
 
 ## License
+Apache
 
-MIT / BSD
 
 ## Author Information
+authors:
 
-This role was created in 2014 by [Jeff Geerling](https://www.jeffgeerling.com/), author of [Ansible for DevOps](https://www.ansiblefordevops.com/).
+  - Lean Delivery Team team@lean-delivery.com

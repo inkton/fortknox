@@ -1,17 +1,46 @@
 ---
 dependency:
   name: galaxy
+  options:
+    requirements-file: requirements.yml
+    collections-path: ~/.ansible/collections
 driver:
   name: docker
+lint: ansible-lint
 platforms:
-  - name: instance
-    image: "geerlingguy/docker-${MOLECULE_DISTRO:-centos7}-ansible:latest"
-    command: ${MOLECULE_DOCKER_COMMAND:-""}
+  - name: test-docker-centos7-mysql
+    image: leandelivery/docker-systemd:centos7
+    privileged: true
+    groups:
+      - rhel_family
+      - rhel7
+
+  - name: test-docker-ubuntu1804-mysql
+    image: leandelivery/docker-systemd:ubuntu-18.04
+    privileged: true
+    security_opts:
+      - seccomp=unconfined
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: true
-    pre_build_image: true
+    tmpfs:
+      - /tmp
+      - /run
+    capabilities:
+      - SYS_ADMIN
+    groups:
+      - debian_family
+
 provisioner:
   name: ansible
+  log: false
+  inventory:
+    group_vars:
+      pip3:
+        ansible_python_interpreter: /usr/bin/python3
   playbooks:
-    converge: ${MOLECULE_PLAYBOOK:-converge.yml}
+    verify: ../resources/tests/verify.yml
+    prepare: ../resources/prepare.yml
+scenario:
+  name: default
+verifier:
+  name: ansible

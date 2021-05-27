@@ -1,4 +1,4 @@
-{{ ansible_managed | comment }}
+# {{ ansible_managed }}
 
 [client]
 #password = your_password
@@ -6,6 +6,10 @@ port = {{ mysql_port }}
 socket = {{ mysql_socket }}
 
 [mysqld]
+{% if mysql_version is version('5.7.2', '>=') and mysql_daemon in ['mysqld'] %}
+default_authentication_plugin = mysql_native_password
+{% endif %}
+user = mysql
 port = {{ mysql_port }}
 bind-address = {{ mysql_bind_address }}
 datadir = {{ mysql_datadir }}
@@ -24,7 +28,8 @@ syslog
 syslog-tag = {{ mysql_syslog_tag }}
 {% else %}
 {% if mysql_log %}
-log = {{ mysql_log }}
+general-log = 1
+general_log_file = {{ mysql_log }}
 {% endif %}
 log-error = {{ mysql_log_error }}
 {% endif %}
@@ -66,9 +71,6 @@ relay-log-index = relay-bin.index
 # Disabling symbolic-links is recommended to prevent assorted security risks
 symbolic-links = 0
 
-# User is ignored when systemd is used (fedora >= 15).
-user = mysql
-
 # http://dev.mysql.com/doc/refman/5.5/en/performance-schema.html
 ;performance_schema
 
@@ -81,7 +83,7 @@ read_buffer_size = {{ mysql_read_buffer_size }}
 read_rnd_buffer_size = {{ mysql_read_rnd_buffer_size }}
 myisam_sort_buffer_size = {{ mysql_myisam_sort_buffer_size }}
 thread_cache_size = {{ mysql_thread_cache_size }}
-{% if '8.0.' not in mysql_cli_version.stdout %}
+{% if mysql_version is version('8.0', '<') %}
 query_cache_type = {{ mysql_query_cache_type }}
 query_cache_size = {{ mysql_query_cache_size }}
 query_cache_limit = {{ mysql_query_cache_limit }}
@@ -98,7 +100,7 @@ lower_case_table_names = {{ mysql_lower_case_table_names }}
 event_scheduler = {{ mysql_event_scheduler_state }}
 
 # InnoDB settings.
-{% if mysql_supports_innodb_large_prefix and '8.0.' not in mysql_cli_version.stdout %}
+{% if mysql_supports_innodb_large_prefix and (mysql_version is version('8.0', '<')) %}
 innodb_large_prefix = {{ mysql_innodb_large_prefix }}
 innodb_file_format = {{ mysql_innodb_file_format }}
 {% endif %}
@@ -108,6 +110,13 @@ innodb_log_file_size = {{ mysql_innodb_log_file_size }}
 innodb_log_buffer_size = {{ mysql_innodb_log_buffer_size }}
 innodb_flush_log_at_trx_commit = {{ mysql_innodb_flush_log_at_trx_commit }}
 innodb_lock_wait_timeout = {{ mysql_innodb_lock_wait_timeout }}
+
+# Additional parameters 
+{% if additional_parameters is defined %}
+{% for param in additional_parameters %}
+{{ param.name }} = {{ param.value }}
+{% endfor %}
+{% endif %}
 
 [mysqldump]
 quick

@@ -1,86 +1,143 @@
 ---
-- name: Ensure default user is present.
-  mysql_user:
-    name: "{{ mysql_user_name }}"
-    host: 'localhost'
-    password: "{{ mysql_user_password }}"
-    priv: '*.*:ALL,GRANT'
-    state: present
-  when: mysql_user_name != mysql_root_username
+# Reset default passwort for root didn't work with module mysql_user,
+# that why we use this block
+- name: Make new mysql admin user
+  block:
+    - name: Check mysql version
+      mysql_variables:
+        variable: version
+        login_user: '{{ mysql_root_username }}'
+        login_password: '{{ mysql_root_password }}'
+      register: mysql_version_out
+      become: true
 
-# Has to be after the password assignment, for idempotency.
-- name: Copy user-my.cnf file with password credentials.
-  template:
-    src: "user-my.cnf.j2"
-    dest: "{{ mysql_user_home }}/.my.cnf"
-    owner: "{{ mysql_user_name }}"
-    mode: 0600
-  when: >
-    mysql_user_name != mysql_root_username
-    and (mysql_install_packages | bool or mysql_user_password_update)
+    - name: Out mysql_version
+      debug:
+        var: mysql_version_out
 
-- name: Disallow root login remotely
-  command: 'mysql -NBe "{{ item }}"'
-  with_items:
-    - DELETE FROM mysql.user WHERE User='{{ mysql_root_username }}' AND Host NOT IN ('localhost', '127.0.0.1', '::1')
-  changed_when: false
+  rescue:
+    - name: Clear InnoDB logs and restart MySQL in skip-grant-tables mode
+      block:
+        - name: Clear InnoDB logs
+          include_tasks: clear_innodb_logs.yml
 
-- name: Get list of hosts for the root user.
-  command: mysql -NBe
-    "SELECT Host
-    FROM mysql.user
-    WHERE User = '{{ mysql_root_username }}'
-    ORDER BY (Host='localhost') ASC"
-  register: mysql_root_hosts
-  changed_when: false
-  check_mode: false
-  when: mysql_install_packages | bool or mysql_root_password_update
+        - name: Copy init.cnf for skip-grant-tables mode
+          template:
+            src: init.cnf.j2
+            dest: '{{ mysql_config_file }}'
+            owner: root
+            group: root
+            mode: 0644
+            force: true
 
-# Note: We do not use mysql_user for this operation, as it doesn't always update
-# the root password correctly. See: https://goo.gl/MSOejW
-# Set root password for MySQL >= 5.7.x.
-- name: Update MySQL root password for localhost root account (5.7.x).
-  shell: >
-    mysql -u root -NBe
-    'ALTER USER "{{ mysql_root_username }}"@"{{ item }}"
-    IDENTIFIED WITH mysql_native_password BY "{{ mysql_root_password }}"; FLUSH PRIVILEGES;'
-  with_items: "{{ mysql_root_hosts.stdout_lines|default([]) }}"
-  when: >
-    ((mysql_install_packages | bool) or mysql_root_password_update)
-    and ('5.7.' in mysql_cli_version.stdout or '8.0.' in mysql_cli_version.stdout)
+        - name: Start mysql with skip-grant-tables
+          service:
+            name: '{{ mysql_service_name }}'
+            state: started
+      become: true
 
-# Set root password for MySQL < 5.7.x.
-- name: Update MySQL root password for localhost root account (< 5.7.x).
-  shell: >
-    mysql -NBe
-    'SET PASSWORD FOR "{{ mysql_root_username }}"@"{{ item }}" = PASSWORD("{{ mysql_root_password }}"); FLUSH PRIVILEGES;'
-  with_items: "{{ mysql_root_hosts.stdout_lines|default([]) }}"
-  when: >
-    ((mysql_install_packages | bool) or mysql_root_password_update)
-    and ('5.7.' not in mysql_cli_version.stdout and '8.0.' not in mysql_cli_version.stdout)
+    - name: Check mysql version
+      mysql_variables:
+        variable: version
+      register: mysql_version_out
+      until: mysql_version_out is succeeded
+      become: true
 
-# Has to be after the root password assignment, for idempotency.
-- name: Copy .my.cnf file with root password credentials.
-  template:
-    src: "root-my.cnf.j2"
-    dest: "{{ mysql_root_home }}/.my.cnf"
-    owner: root
-    group: root
-    mode: 0600
-  when: mysql_install_packages | bool or mysql_root_password_update
+    - name: Copy reset.sql for root reset
+      template:
+        src: reset.sql.j2
+        dest: /tmp/reset.sql
+        force: true
+        mode: 0644
 
-- name: Get list of hosts for the anonymous user.
-  command: mysql -NBe 'SELECT Host FROM mysql.user WHERE User = ""'
-  register: mysql_anonymous_hosts
-  changed_when: false
-  check_mode: false
+    - name: Reset root credentials
+      mysql_db:
+        name: mysql
+        state: import
+        target: /tmp/reset.sql
+        login_unix_socket: '{{ mysql_socket }}'
+      become: true
 
-- name: Remove anonymous MySQL users.
-  mysql_user:
-    name: ""
-    host: "{{ item }}"
-    state: absent
-  with_items: "{{ mysql_anonymous_hosts.stdout_lines|default([]) }}"
+    - name: Clear InnoDB logs and restart MySQL in normal mode
+      block:
+        - name: Clear InnoDB logs
+          include_tasks: clear_innodb_logs.yml
 
-- name: Remove MySQL test database.
-  mysql_db: "name='test' state=absent"
+        - name: Copy my.cnf global MySQL configuration
+          template:
+            src: my.cnf.j2
+            dest: '{{ mysql_config_file }}'
+            mode: 0644
+            owner: root
+            group: root
+
+        - name: Start mysql
+          service:
+            name: '{{ mysql_service_name }}'
+            state: started
+      become: true
+
+    - name: Remove file reset.sql
+      file:
+        path: /tmp/reset.sql
+        state: absent
+
+    - name: Wait for service to be ready
+      wait_for:
+        port: '{{ mysql_port }}'
+        host: '{{ mysql_bind_address }}'
+        connect_timeout: 3
+        delay: 3
+        timeout: 30
+
+- name: Setup admin credentials
+  block:
+    - name: Ensure default user is present
+      mysql_user:
+        name: '{{ mysql_user_name }}'
+        host: localhost
+        password: '{{ mysql_user_password }}'
+        priv: '*.*:ALL,GRANT'
+        state: present
+        login_user: '{{ mysql_root_username }}'
+        login_password: '{{ mysql_root_password }}'
+        login_unix_socket: '{{ mysql_socket }}'
+      when: mysql_user_name != 'root'
+
+    - name: Copy .my.cnf file with password credentials
+      template:
+        src: user-my.cnf.j2
+        dest: '{{ mysql_user_home }}/.my.cnf'
+        owner: '{{ mysql_user_name }}'
+        mode: 0600
+      when: mysql_user_name != mysql_root_username
+
+    - name: Update mysql root password for all root accounts
+      mysql_user:
+        name: root
+        host_all: true
+        password: '{{ mysql_root_password }}'
+        check_implicit_admin: true
+        priv: '*.*:ALL,GRANT'
+        login_user: '{{ mysql_root_username }}'
+        login_password: '{{ mysql_root_password }}'
+        login_unix_socket: '{{ mysql_socket }}'
+      no_log: true
+      tags:
+        - molecule-idempotence-notest
+
+    - name: Remove anonymous MySQL users
+      mysql_user:
+        name: ''
+        host_all: true
+        state: absent
+        login_user: '{{ mysql_root_username }}'
+        login_password: '{{ mysql_root_password }}'
+
+    - name: Remove MySQL test database
+      mysql_db:
+        name: test
+        state: absent
+        login_user: '{{ mysql_root_username }}'
+        login_password: '{{ mysql_root_password }}'
+  become: true
