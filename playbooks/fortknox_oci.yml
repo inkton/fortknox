@@ -8,9 +8,9 @@
     - vars/main.yml    
   roles:    
     - ansible-role-mysql
-    - ansible-role-phabricator
     - ansible-role-php
-    - ansible-role-nginx
+    - ansible-role-phabricator
+    - ansible-role-nginx    
   gather_facts: true
   become: true
   become_user: root
@@ -40,8 +40,37 @@
 #        key_id: "{{ oci_kms_keyid }}"
 #      register: bucket_user_key_decrypt
   
-  tasks:
+    - name: Ensure fortknox group exists
+      group:
+        name: fortknox
+        state: present
+      register: fortknox_group 
 
+    - name: web user
+      user:
+        name: www-user
+        shell: /bin/bash
+        create_home: False
+      register: web_user 
+
+    - name: manager
+      user:
+        name: manager
+        shell: /bin/bash
+        create_home: False
+      register: manager_user
+
+    - name: add users to fortknox group
+      user: 
+        name: "{{ item }}"
+        groups: fortknox
+        append: yes
+      with_items:
+        - www-user
+        - manager
+        - opc
+
+  tasks:
     - name: check swap file exists
       stat:
         path: /opt/swap.file
@@ -106,6 +135,13 @@
 #        shell: /bin/bash
 #        create_home: False
 #      register: db_user
+
+    - name: Copy .my.cnf file with password credentials for Oracle default user
+      template:
+        src: roles/ansible-role-mysql/templates/user-my.cnf.j2
+        dest: '/home/opc/.my.cnf'
+        owner: 'opc'
+        mode: 0600
 
     - name: get oci metadata
       uri:
@@ -264,8 +300,8 @@
         src: "{{ project_directory }}/db_backup.tar.gz"
         dest: "{{ project_directory }}/"
         remote_src: yes
-        owner: fortknoxdb
-        group: fortknoxdb
+        owner: manager
+        group: fortknox
       when: db_state.stat.exists|bool == False
       ignore_errors: True
 
@@ -524,8 +560,8 @@
         - "        path: \"{{ project_directory }}/{{ '{{ item }}' }}\""
         - "        dest: \"{{ project_directory }}/{{ '{{ item }}' }}_backup.tar.gz\""
         - "        format: gz"
-        - "        owner: root"
-        - "        group: root"
+        - "        owner: manager"
+        - "        group: fortknox"
         - "        mode: '0640'"
         - "      with_items:"
         - "        - app"
