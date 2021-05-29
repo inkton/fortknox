@@ -79,7 +79,7 @@ variable "project_url" {
 variable "project_directory" {
   type                     = string
   description              = "Location to install/run project"
-  default                  = "/opt/inkton"
+  default                  = "/opt/fortknox"
 }
 
 variable "web_port" {

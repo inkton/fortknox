@@ -2,11 +2,27 @@
 - name: Git checkout arcanist
   ansible.builtin.git:
     repo: https://github.com/inkton/arcanist.git
-    dest: "{{ project_directory }}/fortknox_app/bin"
+    dest: "{{ project_directory }}/app/arcanist"
     accept_hostkey: true
 
 - name: Git checkout phabricator
   ansible.builtin.git:
     repo: https://github.com/inkton/phabricator.git
-    dest: "{{ project_directory }}/fortknox_app/var/www"
+    dest: "{{ project_directory }}/app/phabricator"
     
+- name: www directory permissions
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: nginx
+    mode: '0750'
+  with_items:
+    - "{{ project_directory }}/app/phabricator"
+
+- name: configure db access
+  ansible.builtin.shell: |
+      config set mysql.host localhost
+      config set mysql.user manager
+      config set mysql.pass {{ manager_password_decrypt.decrypted_data.plaintext | b64decode }}
+  args:
+      chdir: "{{ project_directory }}/app/phabricator/bin" 

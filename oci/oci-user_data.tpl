@@ -1,12 +1,11 @@
 #!/bin/bash
 
 mkdir -p ${project_directory}
-mkdir -p ${project_directory}/fortknox_db
 
 # Create ansible vars
 tee '${project_directory}/playbooks/vars/main.yml'<< EOM
 ansible_python_interpreter: /usr/bin/python2
-mysql_datadir: {{ project_directory }}/fortknox_db
+mysql_datadir: {{ project_directory }}/db
 mysql_root_password: {{ admin_password_decrypt.decrypted_data.plaintext | b64decode }}
 mysql_databases:
   - name: fortknox

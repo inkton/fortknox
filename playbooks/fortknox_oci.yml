@@ -8,9 +8,9 @@
     - vars/main.yml    
   roles:    
     - ansible-role-mysql
+    - ansible-role-phabricator
     - ansible-role-php
     - ansible-role-nginx
-    - ansible-role-phabricator
   gather_facts: true
   become: true
   become_user: root
@@ -131,21 +131,14 @@
       set_fact:
         instance_public_ip: "{{ public_ip_data.public_ips[0].ip_address }}"
 
-    - name: various container directories - application
+    - name: application directory
       file:
         path: "{{ item }}"
         state: directory
-        #owner: www-data
-        owner: opc
+        owner: root
         mode: '0750'
       with_items:
-        - "{{ project_directory }}/fortknox_app"
-        - "{{ project_directory }}/fortknox_app/var"
-        - "{{ project_directory }}/fortknox_app/var/www"
-        - "{{ project_directory }}/fortknox_app/var/www/html"
-        - "{{ project_directory }}/fortknox_app/var/www/html/custom_apps"
-        - "{{ project_directory }}/fortknox_app/var/www/html/config"
-        - "{{ project_directory }}/fortknox_app/var/www/html/data"
+        - "{{ project_directory }}/app"
 
 #    - name: various container directories - webproxy
 #      file:
@@ -165,7 +158,42 @@
 #        group: "{{ db_user.group }}"
 #        mode: '0750'
 #      with_items:
-#        - "{{ project_directory }}/fortknox_db"
+#        - "{{ project_directory }}/db"
+
+#    - name: various container directories - application
+#      file:
+#        path: "{{ item }}"
+#        state: directory
+#        owner: www-data
+#        mode: '0750'
+#      with_items:
+#        - "{{ project_directory }}/app"
+#        - "{{ project_directory }}/app/var"
+#        - "{{ project_directory }}/app/var/www"
+#        - "{{ project_directory }}/app/var/www/html"
+#        - "{{ project_directory }}/app/var/www/html/custom_apps"
+#        - "{{ project_directory }}/app/var/www/html/config"
+#        - "{{ project_directory }}/app/var/www/html/data"
+
+#    - name: various container directories - webproxy
+#      file:
+#        path: "{{ item }}"
+#        state: directory
+#        owner: root
+#        group: root
+#        mode: '0750'
+#      with_items:
+#        - "{{ project_directory }}/fortknox_webproxy"
+
+#    - name: various container directories - db
+#      file:
+#        path: "{{ item }}"
+#        state: directory
+#        owner: "{{ db_user.name }}"
+#        group: "{{ db_user.group }}"
+#        mode: '0750'
+#      with_items:
+#        - "{{ project_directory }}/db"
 
 #    - name: various container directories - onlyoffice
 #      file:
@@ -203,14 +231,14 @@
         auth_type: "instance_principal"
         namespace_name: "{{ oci_storage_namespace }}"
         bucket_name: "{{ oci_storage_bucketname }}"
-        object_name: "fortknox/fortknox_app_backup.tar.gz"
-        dest: "{{ project_directory }}/fortknox_app_backup.tar.gz"
+        object_name: "fortknox/app_backup.tar.gz"
+        dest: "{{ project_directory }}/app_backup.tar.gz"
       when: fortknox_state.stat.exists|bool == False
       ignore_errors: True
 
     - name: unarchive backup if dir not exists
       unarchive:
-        src: "{{ project_directory }}/fortknox_app_backup.tar.gz"
+        src: "{{ project_directory }}/app_backup.tar.gz"
         dest: "{{ project_directory }}/"
         remote_src: yes
       when: fortknox_state.stat.exists|bool == False
@@ -218,27 +246,27 @@
 
     - name: Determine fortknox db state
       stat:
-        path: "{{ project_directory }}/fortknox_db"
-      register: fortknox_db_state
+        path: "{{ project_directory }}/db"
+      register: db_state
 
     - name: get db backup from storage if exists
       oci_object_storage_object:
         auth_type: "instance_principal"
         namespace_name: "{{ oci_storage_namespace }}"
         bucket_name: "{{ oci_storage_bucketname }}"
-        object_name: "fortknox/fortknox_db_backup.tar.gz"
-        dest: "{{ project_directory }}/fortknox_db_backup.tar.gz"
+        object_name: "fortknox/db_backup.tar.gz"
+        dest: "{{ project_directory }}/db_backup.tar.gz"
       when: fortknox_state.stat.exists|bool == False
       ignore_errors: True
 
     - name: unarchive db backup if dir not exists
       unarchive:
-        src: "{{ project_directory }}/fortknox_db_backup.tar.gz"
+        src: "{{ project_directory }}/db_backup.tar.gz"
         dest: "{{ project_directory }}/"
         remote_src: yes
         owner: fortknoxdb
         group: fortknoxdb
-      when: fortknox_db_state.stat.exists|bool == False
+      when: db_state.stat.exists|bool == False
       ignore_errors: True
 
  #   - name: docker network
@@ -265,7 +293,7 @@
 #          PUID: "{{ db_user.uid }}"
 #          PGID: "{{ db_user.group }}"
 #        volumes:
-#          - "{{ project_directory }}/fortknox_db:/config:rw"
+#          - "{{ project_directory }}/db:/config:rw"
 #        pull: yes
 #        purge_networks: yes
 #        restart_policy: "always"
@@ -292,11 +320,11 @@
 #          MYSQL_USER: fortknox
 #          MYSQL_HOST: "{{ docker_db }}"
 #        volumes:
-#          - "{{ project_directory }}/fortknox_app/var/www/html:/var/www/html:rw"
-#          - "{{ project_directory }}/fortknox_app/var/www/html/custom_apps:/var/www/html/custom_apps:rw"
-#          - "{{ project_directory }}/fortknox_app/var/www/html/config:/var/www/html/config:rw"
-#          - "{{ project_directory }}/fortknox_app/var/www/html/data:/var/www/html/data:rw"
-#          - "{{ project_directory }}/fortknox_app/var/www/html/themes:/var/www/html/themes:rw"
+#          - "{{ project_directory }}/app/var/www/html:/var/www/html:rw"
+#          - "{{ project_directory }}/app/var/www/html/custom_apps:/var/www/html/custom_apps:rw"
+#          - "{{ project_directory }}/app/var/www/html/config:/var/www/html/config:rw"
+#          - "{{ project_directory }}/app/var/www/html/data:/var/www/html/data:rw"
+#          - "{{ project_directory }}/app/var/www/html/themes:/var/www/html/themes:rw"
 #        pull: yes
 #        purge_networks: yes
 #        restart_policy: "always"
@@ -383,7 +411,7 @@
 
 #    - name: fortknox onlyoffice storage and talk scripts (clear)
 #      file:
-#        path: "{{ project_directory }}/fortknox_app/fortknox-{{ item }}.sh"
+#        path: "{{ project_directory }}/app/fortknox-{{ item }}.sh"
 #        state: absent
 #      with_items:
 #        - onlyoffice
@@ -392,7 +420,7 @@
 
 #    - name: fortknox onlyoffice (set)
 #      lineinfile:
-#        path: "{{ project_directory }}/fortknox_app/fortknox-onlyoffice.sh"
+#        path: "{{ project_directory }}/app/fortknox-onlyoffice.sh"
 #        create: yes
 #        owner: root
 #        group: root
@@ -411,7 +439,7 @@
 
 #    - name: fortknox storage (set)
 #      lineinfile:
-#        path: "{{ project_directory }}/fortknox_app/fortknox-storage.sh"
+#        path: "{{ project_directory }}/app/fortknox-storage.sh"
 #        create: yes
 #        owner: root
 #        group: root
@@ -437,7 +465,7 @@
 
 #    - name: fortknox talk (set)
 #      lineinfile:
-#        path: "{{ project_directory }}/fortknox_app/fortknox-talk.sh"
+#        path: "{{ project_directory }}/app/fortknox-talk.sh"
 #        create: yes
 #        owner: root
 #        group: root
@@ -461,7 +489,7 @@
 
 #    - name: fortknox onlyoffice storage and talk (execute)
 #      shell:
-#        cmd: "{{ project_directory }}/fortknox_app/fortknox-{{ item }}.sh"
+#        cmd: "{{ project_directory }}/app/fortknox-{{ item }}.sh"
 #      args:
 #        executable: /bin/bash
 #      with_items:
@@ -500,8 +528,8 @@
         - "        group: root"
         - "        mode: '0640'"
         - "      with_items:"
-        - "        - fortknox_app"
-        - "        - fortknox_db"
+        - "        - app"
+        - "        - db"
         - "   "
         - "    - name: upload fortknox archive to storage"
         - "      oci_object_storage_object:"
@@ -511,8 +539,8 @@
         - "        object_name: \"fortknox/{{ '{{ item }}' }}_backup.tar.gz\""
         - "        src: \"{{ project_directory }}/{{ '{{ item }}' }}_backup.tar.gz\""
         - "      with_items: "
-        - "        - fortknox_app "
-        - "        - fortknox_db "
+        - "        - app "
+        - "        - db "
 
     - name: fortknox backup systemd timer
       blockinfile:
@@ -523,7 +551,7 @@
         mode: '0644'
         block: |
           [Unit]
-          Description=Archives and copies fortknox_app and fortknox_db directories to cloud storage
+          Description=Archives and copies app and db directories to cloud storage
           [Timer]
           OnUnitActiveSec=12h
           Unit=fortknox-backup.service
@@ -539,7 +567,7 @@
         mode: '0644'
         block: |
           [Unit]
-          Description=Archives and copies fortknox_app and fortknox_db directories to cloud storage
+          Description=Archives and copies app and db directories to cloud storage
           After=network.target
           [Service]
           ExecStart=/usr/local/bin/ansible-playbook {{ project_directory }}/fortknox-backup.yml

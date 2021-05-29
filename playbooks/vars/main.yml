@@ -9,17 +9,20 @@ mysql_users:
   - name: manager
     host: "%"
     password: "{{ manager_password_decrypt.decrypted_data.plaintext | b64decode }}"
-    priv: "phabricator.*:ALL"
+    priv: "phabricator\_%.*:ALL"
 mysql_port: 3306
 mysql_bind_address: '0.0.0.0'
 mysql_daemon: mysqld
 mysql_version: 8.0
+mysql_default_datadir: "{{ project_directory }}/db"
 mysql_packages:
   - mysql-server
   - MySQL-python
 
 # php
 
+php_version: 7.1
+php_enablerepo: "remi-php71,epel"
 php_memory_limit: "128M"
 php_max_execution_time: "90"
 php_upload_max_filesize: "256M"
