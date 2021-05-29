@@ -3,10 +3,10 @@
 # that why we use this block
 - name: Make new mysql admin user
   block:
-    - name: Copy .my.cnf file with password credentials for root
+    - name: Copy .my.cnf file with password credentials for linux/root to access mysql admin
       template:
         src: root-my.cnf.j2
-        dest: '{{ mysql_root_username }}/.my.cnf'
+        dest: '/root/.my.cnf'
         owner: '{{ mysql_root_password }}'
         mode: 0600
     - name: Check mysql version
