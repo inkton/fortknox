@@ -1,5 +1,8 @@
 # {{ ansible_managed }}
 
 [client]
+port={{ mysql_port }}
+host=localhost
 user="{{ mysql_root_username }}"
 password="{{ mysql_root_password }}"
+socket={{ mysql_socket }}
