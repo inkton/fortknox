@@ -67,10 +67,15 @@
 
     - name:  Change mysql and selinux permissions of data folder has changed
       ansible.builtin.shell: |
+<<<<<<< HEAD
         cp -r /var/lib/mysql/* {{ mysql_datadir }}/
         chcon -R -u system_u -r object_r -t mysqld_db_t {{ mysql_datadir }}
         semanage fcontext -a -t mysqld_db_t {{ mysql_datadir }}(/.*)?
         restorecon -R -v {{ mysql_datadir }}
+=======
+        cp -r /var/lib/mysql '{{ mysql_datadir }}'
+        chcon -R -u system_u -r object_r -t mysqld_db_t '{{ mysql_datadir }}'
+>>>>>>> e9af195d8bf9eabd196b8a2f3065a4e971ec82fc
       when: mysql_datadir != "/var/lib/mysql"
 
     - name: Copy my.cnf global MySQL configuration
