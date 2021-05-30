@@ -50,6 +50,13 @@
       debug:
         var: mysql_version
 
+    - name:  Verify mysql permissions of data folder has changed
+      ansible.builtin.shell: |
+        chcon -Rt mysqld_db_t '{{ mysql_datadir }}'
+        chcon -Ru system_u '{{ mysql_datadir }}'
+        chown -R mysql:mysql '{{ mysql_datadir }}'     
+      when: mysql_datadir != "/var/lib/mysql"
+
     - name: Copy my.cnf global MySQL configuration
       template:
         src: my.cnf.j2
