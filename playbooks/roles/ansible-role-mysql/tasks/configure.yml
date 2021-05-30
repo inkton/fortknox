@@ -50,11 +50,25 @@
       debug:
         var: mysql_version
 
-    - name:  Verify mysql permissions of data folder has changed
+    - name: Reset the new data dir if specified in vars
+      file:
+        path: '{{ mysql_datadir }}'
+        state: absent
+      when: mysql_datadir != "/var/lib/mysql"
+
+    - name: The new data dir must exist if specified in vars
+      file:
+        path: '{{ mysql_datadir }}'
+        state: directory
+        owner: mysql
+        group: mysql
+        mode: 0755
+      when: mysql_datadir != "/var/lib/mysql"
+
+    - name:  Change mysql and selinux permissions of data folder has changed
       ansible.builtin.shell: |
-        chcon -Rt mysqld_db_t '{{ mysql_datadir }}'
-        chcon -Ru system_u '{{ mysql_datadir }}'
-        chown -R mysql:mysql '{{ mysql_datadir }}'     
+        cp -r /var/lib/mysql '{{ mysql_datadir }}'
+        chcon -R -u system_u -r object_r -t mysqld_db_t '{{ mysql_datadir }}'
       when: mysql_datadir != "/var/lib/mysql"
 
     - name: Copy my.cnf global MySQL configuration
