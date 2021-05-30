@@ -35,7 +35,7 @@ tee '${project_directory}/fortknox-ansible-state.sh' << EOM
 #!/bin/bash
 yum check-update
 # Install pre-requisties
-yum -y install yum-utils tmux git rh-python38 policycoreutils-python-utils
+yum -y install yum-utils tmux git rh-python38
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y install https://rpms.remirepo.net/enterprise/remi-release-7.rpm
 yum-config-manager --enable remi-safe
