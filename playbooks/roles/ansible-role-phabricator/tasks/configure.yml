@@ -16,14 +16,15 @@
     state: directory
     owner: "{{ phabricator_web_user }}"
     group: "{{ phabricator_web_group }}"
-    mode: '0750'
+    mode: u=rwX,g=rX,o=rX
+    recurse: yes
   with_items:
-    - "{{ project_directory }}/app/phabricator"
+    - "{{ project_directory }}/app/phabricator/"
 
 - name: configure db access
   ansible.builtin.shell: |
-    config set mysql.host 'localhost'
-    config set mysql.user 'manager'
-    config set mysql.pass '{{ manager_password_decrypt.decrypted_data.plaintext | b64decode }}'
+    ./config set mysql.host 'localhost'
+    ./config set mysql.user 'manager'
+    ./config set mysql.pass '{{ manager_password_decrypt.decrypted_data.plaintext | b64decode }}'
   args:
     chdir: "{{ project_directory }}/app/phabricator/bin" 

@@ -56,6 +56,25 @@ php_serialize_precision: "-1"
 
 # nginx
 
+nginx_user: "{{ php_fpm_pool_user }}"
+nginx_group: "{{ php_fpm_pool_group }}"
+nginx_extra_conf_options: |
+  worker_rlimit_nofile 8192;
+nginx_sendfile: "on"
+nginx_tcp_nopush: "on"
+nginx_tcp_nodelay: "on"
+nginx_keepalive_timeout: "65"
+nginx_keepalive_requests: "100"
+nginx_server_tokens: "on"
+nginx_client_max_body_size: "64m"
+nginx_server_names_hash_bucket_size: "64"
+nginx_extra_http_options: |
+  proxy_buffering    off;
+  proxy_set_header   X-Real-IP $remote_addr;
+  proxy_set_header   X-Scheme $scheme;
+  proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header   Host $http_host;
+  
 nginx_vhosts:
   - listen: "80 default_server"
     server_name: "{{ app_tag }}.{{ user_name }}.fortknox.dev"
@@ -63,8 +82,8 @@ nginx_vhosts:
     root: "{{ project_directory }}/fortknox_app/var/www"
     index: "index.php index.html index.htm"
     error_page: ""
-    access_log: ""
-    error_log: ""
+    access_log: "/var/log/nginx/access.log main buffer=16k"
+    error_log: "/var/log/nginx/error.log warn"
     state: "present"
     template: "{{ nginx_vhost_template }}"
     filename: "{{ app_tag }}.{{ user_name }}.fortknox.dev.conf"
@@ -98,5 +117,5 @@ nginx_vhosts:
 
 # phabricator
 
-phabricator_web_user: "www-user"
-phabricator_web_group: "fortknox"
+phabricator_web_user: "{{ php_fpm_pool_user }}"
+phabricator_web_group: "{{ php_fpm_pool_group }}"

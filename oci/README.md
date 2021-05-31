@@ -1,0 +1,1 @@
+sudo systemctl status  fortknox-ansible-state.timer
