@@ -1,0 +1,57 @@
+---
+- name: Relocate the data dir
+  block:
+    - name: Stop the MySQL service
+      service:
+        name: '{{ mysql_service_name }}'
+        state: stopped
+        enabled: true
+
+    - name: The new data dir must exist if specified in vars
+      file:
+        path: '{{ mysql_relocate_datadir }}'
+        state: directory
+        owner: mysql
+        group: mysql
+        mode: 0755
+
+    - name:  Change mysql and selinux permissions of data folder has changed
+      ansible.builtin.shell: |
+        cp -R /var/lib/mysql/* "{{ mysql_relocate_datadir }}"/
+        chcon -R -u system_u -r object_r -t mysqld_db_t "{{ mysql_relocate_datadir }}"
+        semanage fcontext -a -t mysqld_db_t "{{ mysql_relocate_datadir }}(/.*)?"
+        restorecon -R -v "{{ mysql_relocate_datadir }}"
+      vars:
+        mysql_datadir: mysql_relocate_datadir
+      register: mysql_relocation_se_permissions
+
+    - name: debug mysql_relocation_se_permissions
+      debug:
+        var: mysql_relocation_se_permissions
+
+    - name: Copy my.cnf global MySQL configuration
+      template:
+        src: my.cnf.j2
+        dest: '{{ mysql_config_file }}'
+        owner: root
+        group: root
+        mode: 0644
+        force: '{{ overwrite_global_mycnf }}'
+      register: mysql_config
+      notify: restart mysql
+
+    - name: Start MySQL service
+      service:
+        name: '{{ mysql_service_name }}'
+        state: started
+        enabled: true
+
+  become: true
+
+- name: Wait for service to be ready
+  wait_for:
+    port: '{{ mysql_port }}'
+    host: '{{ mysql_bind_address }}'
+    connect_timeout: 3
+    delay: 3
+    timeout: 30

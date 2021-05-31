@@ -28,6 +28,10 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
 
+- name: Relocate the data dir if requested
+  include_tasks: relocate_data_dir.yml
+  when: mysql_relocate_datadir != ""
+
 - name: Create databases and users
   include_tasks: databases_and_users.yml
   vars:

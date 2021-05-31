@@ -14,7 +14,7 @@ mysql_port: 3306
 mysql_bind_address: '0.0.0.0'
 mysql_daemon: mysqld
 mysql_version: 8.0
-#mysql_datadir: "{{ project_directory }}/db"
+mysql_relocate_datadir: "{{ project_directory }}/db"
 mysql_packages:
   - mysql-server
   - MySQL-python
