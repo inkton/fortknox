@@ -40,7 +40,7 @@
 #        key_id: "{{ oci_kms_keyid }}"
 #      register: bucket_user_key_decrypt
   
-    - name: Ensure fortknox group exists
+    - name: ensure fortknox group exists
       group:
         name: fortknox
         state: present
@@ -69,6 +69,48 @@
         - www-user
         - manager
         - opc
+
+    - name: ensure certificate directory exists
+      file:
+        path: "{{ item }}"
+        state: directory        
+        owner: manager
+        group: fortknox
+        mode: '0750'
+      with_items:
+        - "{{ project_directory }}/certs"
+
+    - name: generate an OpenSSL private key
+      openssl_privatekey:
+        path: "{{ project_directory }}/certs/{{ fortknox_server_name }}_privkey.pem"
+        size: "{{ fortknox_ssl_key_size }}"
+        type: "{{ fortknox_ssl_key_type }}"
+        backup: yes
+
+    - name: generate an OpenSSL Certificate Signing Request with Subject information
+      openssl_csr:
+        path: "{{ project_directory }}/certs/{{ fortknox_server_name }}.csr"
+        privatekey_path: "{{ project_directory }}/certs/{{ fortknox_server_name }}_privkey.pem"
+        country_name: "{{ fortknox_ssl_country_name }}"
+        organization_name: "{{ organization_name }}"
+        email_address: "{{ fortknox_ssl_organization_name }}"
+        common_name: "{{ fortknox_server_name }}"
+
+    - name: generate a Self Signed OpenSSL certificate
+      openssl_certificate:
+        path: "{{ project_directory }}/certs/{{ fortknox_server_name }}_cert.pem"
+        privatekey_path: "{{ project_directory }}/certs/{{ fortknox_server_name }}_privkey.pem"
+        csr_path: "{{ project_directory }}/certs/{{ fortknox_server_name }}.csr"
+        provider: selfsigned
+
+    - name: check the cert
+      ansible.builtin.shell: |
+        "openssl x509 -in {{ project_directory }}/certs/{{ fortknox_server_name }}_cert.pem -text"
+      register: cert_check
+
+    - name: debug cert_check
+      debug:
+        var: cert_check
 
   tasks:
     - name: check swap file exists
@@ -171,7 +213,8 @@
       file:
         path: "{{ item }}"
         state: directory
-        owner: root
+        owner: manager
+        group: fortknox
         mode: '0750'
       with_items:
         - "{{ project_directory }}/app"

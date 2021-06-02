@@ -1,3 +1,13 @@
+# common
+
+fortknox_server_name: "{{ user_name }}-{{ app_tag }}.fortknox.dev" 
+fortknox_ssl_key_size: 4096
+fortknox_ssl_passphrase: # Set if you want passphrase
+fortknox_ssl_key_type: RSA # Others include DSA, ECC, Ed25519, Ed448, X25519, X448
+fortknox_ssl_country_name: ""
+fortknox_ssl_email_address: ""
+fortknox_ssl_organization_name: ""
+
 # mysql
 
 mysql_root_password: "{{ admin_password_decrypt.decrypted_data.plaintext | b64decode }}"
@@ -24,6 +34,7 @@ mysql_packages:
 php_version: 7.1
 php_enablerepo: "remi-php71,epel"
 
+php_enable_php_fpm: true
 php_fpm_pool_user: "www-user"
 php_fpm_pool_group: "fortknox"
 php_memory_limit: "256M"
@@ -91,13 +102,13 @@ nginx_vhosts:
     extra_parameters: |
       location ~ \.php$ {
           fastcgi_split_path_info ^(.+\.php)(/.+)$;
-          fastcgi_pass unix:/var/run/php5-fpm.sock;
+          fastcgi_pass {{ php_fpm_listen }};
           fastcgi_index index.php;
           fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
           include fastcgi_params;
       }
-      ssl_certificate     /etc/ssl/certs/ssl-cert-snakeoil.pem;
-      ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+      ssl_certificate     {{ project_directory }}/certs/{{ fortknox_server_name }}_cert.pem;
+      ssl_certificate_key {{ project_directory }}/certs/{{ fortknox_server_name }}_privkey.pem;
       ssl_protocols       TLSv1.1 TLSv1.2;
       ssl_ciphers         HIGH:!aNULL:!MD5;      
 
