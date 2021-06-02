@@ -46,3 +46,21 @@
     name: nginx
     state: "{{ nginx_service_state }}"
     enabled: "{{ nginx_service_enabled }}"
+
+- name: Start the firewall manager
+  systemd:
+    name: firewalld
+    state: started
+    enabled: True
+
+- name: Open the http ports
+  ansible.builtin.shell: |
+    firewall-cmd --zone=public --add-port=80/tcp --permanent 
+    firewall-cmd --zone=public --add-port=443/tcp --permanent 
+    firewall-cmd --reload
+    firewall-cmd --list-all
+  register: firewall_status
+
+- name: debug firewall_status
+  debug:
+    var: firewall_status

@@ -58,6 +58,9 @@ php_serialize_precision: "-1"
 
 nginx_user: "{{ php_fpm_pool_user }}"
 nginx_group: "{{ php_fpm_pool_group }}"
+nginx_error_log: "/var/log/nginx/error.log warn"
+nginx_access_log: "/var/log/nginx/access.log"
+
 nginx_extra_conf_options: |
   worker_rlimit_nofile 8192;
 nginx_sendfile: "on"
@@ -76,36 +79,15 @@ nginx_extra_http_options: |
   proxy_set_header   Host $http_host;
   
 nginx_vhosts:
-  - listen: "80 default_server"
-    server_name: "{{ app_tag }}.{{ user_name }}.fortknox.dev"
-    server_name_redirect: "www.{{ app_tag }}.{{ user_name }}.fortknox.dev"
-    root: "{{ project_directory }}/fortknox_app/var/www"
-    index: "index.php index.html index.htm"
-    error_page: ""
-    access_log: "/var/log/nginx/access.log main buffer=16k"
-    error_log: "/var/log/nginx/error.log warn"
-    state: "present"
-    template: "{{ nginx_vhost_template }}"
-    filename: "{{ app_tag }}.{{ user_name }}.fortknox.dev.conf"
-    extra_parameters: |
-      location ~ \.php$ {
-          fastcgi_split_path_info ^(.+\.php)(/.+)$;
-          fastcgi_pass unix:/var/run/php5-fpm.sock;
-          fastcgi_index index.php;
-          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-          include fastcgi_params;
-      }
   - listen: "443 ssl http2"
-    server_name: "{{ app_tag }}.{{ user_name }}.fortknox.dev"
-    server_name_redirect: "www.{{ app_tag }}.{{ user_name }}.fortknox.dev"
-    root: "{{ project_directory }}/fortknox_app/var/www"
-    index: "index.php index.html index.htm"
-    error_page: ""
-    access_log: ""
-    error_log: ""
+    server_name: "_"
+    root: "{{ project_directory }}/app/phabricator/"
+    index: "index.php index.html"
+    access_log: "/var/log/nginx/{{ app_tag }}.access.log"
+    error_log: "/var/log/nginx/{{ app_tag }}.error.log warn"
     state: "present"
     template: "{{ nginx_vhost_template }}"
-    filename: "{{ app_tag }}.{{ user_name }}.fortknox.dev.conf"
+    filename: "{{ app_tag }}.fortknox.dev.conf"
     extra_parameters: |
       location ~ \.php$ {
           fastcgi_split_path_info ^(.+\.php)(/.+)$;
@@ -114,6 +96,10 @@ nginx_vhosts:
           fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
           include fastcgi_params;
       }
+      ssl_certificate     /etc/ssl/certs/ssl-cert-snakeoil.pem;
+      ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+      ssl_protocols       TLSv1.1 TLSv1.2;
+      ssl_ciphers         HIGH:!aNULL:!MD5;      
 
 # phabricator
 

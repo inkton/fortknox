@@ -12,3 +12,8 @@
   package:
     name: "{{ nginx_package_name }}"
     state: present
+
+- name: Ensure firewall manager is present.
+  package:
+    name: "firewalld"
+    state: present
